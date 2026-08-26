@@ -219,7 +219,7 @@ export default function ResellerDeviceBalances() {
                   </div>
                 </div>
 
-                <div className="space-y-3 p-3">
+                <div className="space-y-2 p-2 sm:space-y-3 sm:p-3">
                   {d.sims.map((sim) => {
                     const st = styleFor(sim.provider);
                     return (
@@ -229,16 +229,16 @@ export default function ResellerDeviceBalances() {
                       >
                         <div
                           className={cn(
-                            'flex items-center gap-2 bg-gradient-to-r px-3 py-2 text-primary-foreground',
+                            'flex items-center gap-1.5 bg-gradient-to-r px-2 py-1.5 text-primary-foreground sm:gap-2 sm:px-3 sm:py-2',
                             st.head
                           )}
                         >
-                          <Signal className="h-4 w-4" />
-                          <span className="text-sm font-semibold">
+                          <Signal className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                          <span className="truncate text-[11px] font-semibold sm:text-sm">
                             SIM{sim.slot}: {sim.provider}
                           </span>
                         </div>
-                        <div className="space-y-1.5 px-3 py-2.5 text-xs">
+                        <div className="space-y-1.5 px-2 py-2 text-[11px] sm:px-3 sm:py-2.5 sm:text-xs">
                           <div className="flex items-center justify-between gap-2">
                             <span className="truncate font-mono tabular-nums text-muted-foreground">
                               {sim.number || '—'}
