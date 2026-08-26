@@ -227,30 +227,37 @@ export default function ResellerDeviceBalances() {
                           </span>
                         </div>
                         <div className="space-y-1.5 px-3 py-2.5 text-xs">
-                          <div className="flex items-center justify-between">
-                            <span className="font-mono text-muted-foreground">{sim.number || '—'}</span>
-                            <span className="rounded-md bg-muted px-2 py-0.5 font-semibold">
-                              Rate: {(sim.rate * 100).toFixed(1)}%
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate font-mono tabular-nums text-muted-foreground">
+                              {sim.number || '—'}
+                            </span>
+                            <span className="shrink-0 rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-bold tabular-nums text-amber-700 dark:bg-amber-950/50 dark:text-amber-400">
+                              Rate: {fmtRate(sim.rate)}
                             </span>
                           </div>
                           {isHormuud(sim.provider) ? (
                             <>
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between gap-2">
                                 <span className="text-muted-foreground">EVC Plus:</span>
-                                <span className="font-bold">${sim.evcPlus.toFixed(2)}</span>
+                                <span className="flex items-center font-bold tabular-nums">
+                                  {fmtMoney(sim.evcPlus)}
+                                  <AmountDot />
+                                </span>
                               </div>
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between gap-2">
                                 <span className="text-muted-foreground">E-Voucher:</span>
-                                <span className="font-bold text-emerald-600">
-                                  ${sim.evoucher.toFixed(2)}
+                                <span className="flex items-center font-bold tabular-nums text-emerald-600">
+                                  {fmtMoney(sim.evoucher)}
+                                  <AmountDot />
                                 </span>
                               </div>
                             </>
                           ) : (
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between gap-2">
                               <span className="text-muted-foreground">Balance:</span>
-                              <span className="font-bold text-emerald-600">
-                                ${(sim.evoucher || sim.evcPlus).toFixed(2)}
+                              <span className="flex items-center font-bold tabular-nums text-emerald-600">
+                                {fmtMoney(sim.evoucher || sim.evcPlus)}
+                                <AmountDot />
                               </span>
                             </div>
                           )}
