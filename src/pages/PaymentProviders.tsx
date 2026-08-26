@@ -79,7 +79,7 @@ const PaymentProviders = () => {
     enabled: !!tenantId,
     staleTime: 30 * 1000,
     retry: false,
-    initialData: () => {
+    placeholderData: () => {
       try {
         const cached = paymentCacheKey ? localStorage.getItem(paymentCacheKey) : null;
         return cached ? JSON.parse(cached) : [];
