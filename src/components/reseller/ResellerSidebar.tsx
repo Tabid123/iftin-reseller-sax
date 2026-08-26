@@ -24,6 +24,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
 import ThemeToggle from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
+import { useIsSuperAdmin } from '@/hooks/useIsSuperAdmin';
+
 
 export interface ResellerNavItem {
   value: string;
