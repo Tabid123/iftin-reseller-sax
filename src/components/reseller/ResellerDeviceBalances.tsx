@@ -42,6 +42,19 @@ const styleFor = (provider: string) => {
 
 const isHormuud = (p: string) => (p || '').toLowerCase().includes('hormuud');
 
+const PROVIDER_LOGOS: { match: string; src: string }[] = [
+  { match: 'hormuud', src: '/storage/logos/hormuud.jpg' },
+  { match: 'somtel', src: '/storage/logos/somtel.png' },
+  { match: 'somnet', src: '/storage/logos/somnet.jpg' },
+  { match: 'somlink', src: '/storage/logos/somlink.jpg' },
+  { match: 'amtel', src: amtelLogo },
+];
+
+const logoFor = (provider: string) => {
+  const p = (provider || '').toLowerCase();
+  return PROVIDER_LOGOS.find((l) => p.includes(l.match))?.src ?? null;
+};
+
 const moneyFmt = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
