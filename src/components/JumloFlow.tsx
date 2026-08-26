@@ -61,14 +61,14 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
     }
   }, [open]);
 
-  const { data: tiers = [] } = useQuery<Tier[]>({
+  const { data: tiers = [], isLoading: tiersLoading } = useQuery<Tier[]>({
     queryKey: ['wholesaleTiers', providerId],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_provider_wholesale_tiers', { provider_uuid: providerId });
       if (error) throw error;
       return (data as any) || [];
     },
-    enabled: open && !!providerId,
+    enabled: !!providerId,
     staleTime: 60_000,
   });
 
