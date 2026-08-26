@@ -1,11 +1,11 @@
 {
-  "name": "Iftin Internet Reseller - Iibso Internet Offline",
-  "short_name": "Iftin Reseller",
-  "description": "Iftin ka iibso Internet adigoona qof wicin, waqti kasta, xitaa offline!",
+  "name": "Iftin Resellers - Iibso Internet Offline",
+  "short_name": "Iftin Resellers",
+  "description": "Iftin Resellers: ka iibso internet adigoon qof wicin, waqti kasta, xitaa offline!",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0099ff",
+  "theme_color": "#0755D7",
   "orientation": "portrait",
   "scope": "/",
   "icons": [
