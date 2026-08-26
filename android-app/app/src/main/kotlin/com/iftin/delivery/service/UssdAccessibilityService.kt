@@ -1920,16 +1920,17 @@ class UssdAccessibilityService : AccessibilityService() {
         }
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-        // ===== SOMNET: 1s settle before touching a freshly rendered dialog =====
-        // Somnet re-renders its dialogs after the first paint; acting immediately can
-        // press Send while the input field is still empty. Wait 1s, re-read the tree,
-        // and only then run the normal write -> verify -> send path.
-        val providerName = prefs.getString("current_provider", null)?.lowercase().orEmpty()
-        if (providerName.contains("somnet")) {
+        // ===== ALL PROVIDERS: 1s settle before touching a freshly rendered dialog =====
+        // Somnet, Somtel and Amtel all re-render their dialogs after the first paint;
+        // acting immediately can press Send while the input field is still empty (the
+        // "dialog just sits there" bug). Wait 1s, re-read the tree, and only then run
+        // the normal write -> verify -> send path. Same behaviour for every provider.
+        run {
             val settleKey = "$ussdSessionToken|" + dialogSignature(root)
             if (settleKey != lastSettledDialogKey) {
                 if (settleKey == pendingSettleDialogKey) {
-                    Log.i(TAG, "⏳ Somnet settle already pending for this dialog")
+                    Log.i(TAG, "⏳ Dialog settle already pending for this dialog")
+                    armStallWatchdog(settleKey)
                     return true
                 }
                 pendingSettleDialogKey = settleKey
@@ -1941,7 +1942,7 @@ class UssdAccessibilityService : AccessibilityService() {
                     try {
                         val liveKey = "$ussdSessionToken|" + dialogSignature(rt)
                         if (liveKey != settleKey) {
-                            Log.i(TAG, "🚫 Somnet settle dropped — dialog changed")
+                            Log.i(TAG, "🚫 Dialog settle dropped — dialog changed")
                             return@postDelayed
                         }
                         lastSettledDialogKey = settleKey
@@ -1950,11 +1951,14 @@ class UssdAccessibilityService : AccessibilityService() {
                     } finally {
                         try { rt.recycle() } catch (_: Exception) {}
                     }
-                }, SOMNET_DIALOG_SETTLE_MS)
-                Log.i(TAG, "⏱️ Somnet dialog settle scheduled (${SOMNET_DIALOG_SETTLE_MS}ms)")
+                }, DIALOG_SETTLE_MS)
+                Log.i(TAG, "⏱️ Dialog settle scheduled (${DIALOG_SETTLE_MS}ms)")
+                armStallWatchdog(settleKey)
                 return true
             }
         }
+        armStallWatchdog("$ussdSessionToken|" + dialogSignature(root))
+
 
         // Prefer the explicit flow_id assigned to this provider (admin-configured),
         // fall back to trigger-code lookup for backward compatibility.
