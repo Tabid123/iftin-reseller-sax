@@ -9,7 +9,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { RefreshCw, CreditCard, DollarSign, Clock, AlertTriangle } from "lucide-react";
+import { RefreshCw, CreditCard, DollarSign, Clock, AlertTriangle, CalendarClock } from "lucide-react";
 
 interface SubRow {
   tenant_id: string;
@@ -18,21 +18,32 @@ interface SubRow {
   tenant_status: string;
   plan: string | null;
   amount: number | null;
+  trial_starts_at?: string | null;
   trial_ends_at: string | null;
   current_period_end: string | null;
   grace_ends_at: string | null;
+  grace_days?: number | null;
   state: string;
   days_left: number | null;
   last_payment_at: string | null;
   total_paid: number | null;
 }
 
+/** yyyy-MM-ddTHH:mm in local time for <input type="datetime-local"> */
+const toLocalInput = (d: Date) => {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+
+
 const STATE_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  scheduled: { label: "Sugaya bilow", variant: "outline" },
   trialing: { label: "Tijaabo", variant: "secondary" },
   active: { label: "Firfircoon", variant: "default" },
   grace: { label: "Muddo nabad ah", variant: "outline" },
   expired: { label: "Dhacay", variant: "destructive" },
 };
+
 
 const fmt = (d: string | null) =>
   d ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
@@ -46,6 +57,49 @@ export default function SubscriptionsManager() {
   const [method, setMethod] = useState("manual");
   const [reference, setReference] = useState("");
   const [saving, setSaving] = useState(false);
+  const [trialFor, setTrialFor] = useState<SubRow | null>(null);
+  const [trialStart, setTrialStart] = useState("");
+  const [trialEnd, setTrialEnd] = useState("");
+  const [graceDays, setGraceDays] = useState("3");
+  const [savingTrial, setSavingTrial] = useState(false);
+
+  const openTrial = (r: SubRow) => {
+    const start = r.trial_starts_at ? new Date(r.trial_starts_at) : new Date();
+    const end = r.trial_ends_at
+      ? new Date(r.trial_ends_at)
+      : r.current_period_end
+        ? new Date(r.current_period_end)
+        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    setTrialStart(toLocalInput(start));
+    setTrialEnd(toLocalInput(end));
+    setGraceDays(String(r.grace_days ?? 3));
+    setTrialFor(r);
+  };
+
+  const submitTrial = async () => {
+    if (!trialFor) return;
+    if (!trialStart || !trialEnd || new Date(trialEnd) <= new Date(trialStart)) {
+      toast.error("Taariikhda dhammaadku waa inay ka danbeysaa tan bilowga");
+      return;
+    }
+    setSavingTrial(true);
+    const { data, error } = await supabase.rpc("set_tenant_trial", {
+      _tenant: trialFor.tenant_id,
+      _starts_at: new Date(trialStart).toISOString(),
+      _ends_at: new Date(trialEnd).toISOString(),
+      _grace_days: Math.max(0, Number(graceDays) || 0),
+    } as any);
+    setSavingTrial(false);
+    const res = data as { ok?: boolean; error?: string } | null;
+    if (error || !res?.ok) {
+      toast.error(res?.error || error?.message || "Lama cusboonaysiin");
+      return;
+    }
+    toast.success("Muddada tijaabada waa la cusboonaysiiyay");
+    setTrialFor(null);
+    load();
+  };
+
 
   const load = async () => {
     setLoading(true);
@@ -176,17 +230,28 @@ export default function SubscriptionsManager() {
                       <DollarSign className="h-3 w-3" /> Bixiyay: ${Number(r.total_paid ?? 0).toFixed(0)}
                     </span>
                     <span>Qorshaha: {r.plan ?? "trial"}</span>
+                    <span className="flex items-center gap-1">
+                      <CalendarClock className="h-3 w-3" /> Trial: {fmt(r.trial_starts_at ?? null)} →{" "}
+                      {fmt(r.trial_ends_at)}
+                    </span>
+
                   </div>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setPayFor(r);
-                    setPlan("monthly");
-                  }}
-                >
-                  Diiwaangeli lacag
-                </Button>
+                <div className="flex gap-2 shrink-0">
+                  <Button size="sm" variant="outline" onClick={() => openTrial(r)}>
+                    <CalendarClock className="h-4 w-4 mr-1" /> Trial
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setPayFor(r);
+                      setPlan("monthly");
+                    }}
+                  >
+                    Diiwaangeli lacag
+                  </Button>
+                </div>
+
               </div>
             );
           })}
@@ -242,6 +307,46 @@ export default function SubscriptionsManager() {
 
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!trialFor} onOpenChange={(o) => !o && setTrialFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Beddel muddada tijaabada — {trialFor?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium">Bilaabmaya</label>
+              <Input type="datetime-local" value={trialStart} onChange={(e) => setTrialStart(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Dhammaanaya</label>
+              <Input type="datetime-local" value={trialEnd} onChange={(e) => setTrialEnd(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Maalmaha grace-ka</label>
+              <Input
+                type="number"
+                min={0}
+                value={graceDays}
+                onChange={(e) => setGraceDays(e.target.value)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Marka muddadu dhammaato waxaa bilaabmaya grace-ka, kadibna reseller-ka waxaa la tusayaa shaashadda
+              xiritaanka.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTrialFor(null)}>
+              Jooji
+            </Button>
+            <Button onClick={submitTrial} disabled={savingTrial}>
+              {savingTrial ? "Waa la kaydinayaa..." : "Kaydi"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
