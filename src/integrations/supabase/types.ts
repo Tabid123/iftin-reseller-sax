@@ -3079,6 +3079,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_profit_report: {
+        Args: {
+          p_end: string
+          p_group_by?: string
+          p_provider_id?: string
+          p_start: string
+        }
+        Returns: Json[]
+      }
       get_provider_wholesale_tiers: {
         Args: { p_tenant_id?: string; provider_uuid: string }
         Returns: {

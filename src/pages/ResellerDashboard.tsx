@@ -23,6 +23,7 @@ const ResellerProviders = lazy(() => import('@/components/reseller/ResellerProvi
 const ResellerApps = lazy(() => import('@/components/reseller/ResellerApps'));
 const ResellerDeviceBalances = lazy(() => import('@/components/reseller/ResellerDeviceBalances'));
 const ResellerProfitCalculator = lazy(() => import('@/components/reseller/ResellerProfitCalculator'));
+const ResellerProfitReport = lazy(() => import('@/components/reseller/ResellerProfitReport'));
 
 
 const TabLoader = () => (
@@ -162,6 +163,7 @@ export default function ResellerDashboard() {
             {activeTab === 'providers' && <ResellerProviders />}
             {activeTab === 'wholesale-tiers' && <WholesaleTiersManager />}
             {activeTab === 'profit-calculator' && <ResellerProfitCalculator />}
+            {activeTab === 'profit-report' && <ResellerProfitReport />}
             {activeTab === 'devices' && <DeviceManagement />}
             {activeTab === 'sim-pins' && <ResellerSimPins />}
             {activeTab === 'send-notification' && <SendNotification />}
