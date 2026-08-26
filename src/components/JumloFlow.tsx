@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { X, Loader2, ArrowLeft, Send, Layers, Crown, Gem, Sparkles, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { fetchProviderPaymentNumber, pickPaymentNumber } from '@/lib/paymentNumber';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
@@ -76,6 +77,13 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
     staleTime: 60_000,
   });
 
+  const { data: providerPaymentNumber = null } = useQuery<string | null>({
+    queryKey: ['providerPaymentNumber', providerId, tenantId],
+    queryFn: () => fetchProviderPaymentNumber(providerId, tenantId),
+    enabled: open && !!providerId && !!tenantId,
+    staleTime: 30_000,
+  });
+
   const { data: paymentMethods = [], isLoading: paymentMethodsLoading } = useQuery<PaymentProvider[]>({
     queryKey: ['jumloPaymentMethods', tenantId],
     queryFn: async () => {
@@ -86,6 +94,7 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
     enabled: open && !!tenantId,
     staleTime: 30_000,
   });
+
 
   useEffect(() => {
     if (!open || !tenantId) return;
@@ -165,7 +174,7 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
     const ussdPrefix =
       selectedMethod.ussd_prefix ||
       ((selectedMethod.provider_name || '').toLowerCase().includes('jeeb') ? '*812*' : '*712*');
-    const iftinNumber = selectedMethod.payment_number || '617195659';
+    const iftinNumber = pickPaymentNumber(selectedMethod.payment_number, providerPaymentNumber);
     const formattedAmount = formatUssdAmount(numericAmount);
     const ussdCode = `${ussdPrefix}${iftinNumber}*${formattedAmount}#`;
 
@@ -421,7 +430,7 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
                               <p className="font-semibold text-gray-800">{m.provider_name}</p>
                               <p className="text-xs text-gray-500">
                                 {prefix}
-                                {m.payment_number || '617195659'}*
+                                {pickPaymentNumber(m.payment_number, providerPaymentNumber)}*
                               </p>
                             </div>
                           </button>

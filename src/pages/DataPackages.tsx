@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useParams, useLocation } from "@/lib/router-compat";
 import { ArrowLeft, Wifi, Smartphone, Clock, Zap, Copy, Check, Phone, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { showBannerAd, hideBannerAd } from '@/services/admob';
 import { logScreenView } from '@/services/firebase';
 import { useConnectivity } from '@/contexts/ConnectivityContext';
 import { useTenant } from '@/contexts/TenantContext';
+import { pickPaymentNumber } from '@/lib/paymentNumber';
 
 interface Category {
   id: string;
@@ -51,6 +52,21 @@ const DataPackages = () => {
   const senderPhone = location.state?.senderPhone || '';
   const receiverPhone = location.state?.receiverPhone || '';
   
+  // Tenant/provider configured payment number (offline uses cached providers)
+  const offlineProviderPaymentNumber = useMemo(() => {
+    try {
+      const cached = localStorage.getItem('offline_providers');
+      if (!cached) return null;
+      const providers = JSON.parse(cached);
+      const prov = providers.find(
+        (p: any) => p.id === provider || p.provider_name?.toLowerCase() === provider?.toLowerCase(),
+      );
+      return (prov?.payment_number ?? '').toString().trim() || null;
+    } catch (_e) {
+      return null;
+    }
+  }, [provider]);
+
   const [activeTab, setActiveTab] = useState('All');
   const packageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const queryClient = useQueryClient();
@@ -322,7 +338,7 @@ const DataPackages = () => {
     // Determine USSD prefix and payment number based on sender's provider
     const senderPrefix = senderPhone?.substring(0, 2) || '';
     const isSomnet = senderPrefix === '68';
-    let iftinPaymentNumber = '617195659';
+    let iftinPaymentNumber = pickPaymentNumber(offlineProviderPaymentNumber);
     let iftinPaymentPrefix = isSomnet ? '*812*' : '*712*';
     
     // Build USSD code correctly without encoding
@@ -653,7 +669,7 @@ const DataPackages = () => {
               const amount = selectedPackageData?.price?.replace('$', '') || '0';
               const sp = senderPhone?.substring(0, 2) || '';
               const isSn = sp === '68';
-              let iftinPaymentNumber = '617195659';
+              let iftinPaymentNumber = pickPaymentNumber(offlineProviderPaymentNumber);
               let iftinPaymentPrefix = isSn ? '*812*' : '*712*';
               
               const amountFormatted = amount.replace('.', '*');
