@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { X, Loader2, ArrowLeft, Send, Layers, Crown, Gem, Sparkles, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
@@ -43,6 +44,8 @@ const isIOS = () =>
   (navigator.platform === 'MacIntel' && (navigator as any).maxTouchPoints > 1);
 
 export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, providerName, brandColor }) => {
+  const { tenant } = useTenant();
+  const tenantId = tenant?.id ?? null;
   const [step, setStep] = useState<Step>('tier');
   const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
@@ -62,9 +65,9 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
   }, [open]);
 
   const { data: tiers = [], isLoading: tiersLoading } = useQuery<Tier[]>({
-    queryKey: ['wholesaleTiers', providerId],
+    queryKey: ['wholesaleTiers', providerId, tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_provider_wholesale_tiers', { provider_uuid: providerId });
+      const { data, error } = await supabase.rpc('get_provider_wholesale_tiers', { provider_uuid: providerId, p_tenant_id: tenantId });
       if (error) throw error;
       return (data as any) || [];
     },
