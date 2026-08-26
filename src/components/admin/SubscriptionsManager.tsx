@@ -232,15 +232,21 @@ export default function SubscriptionsManager() {
                     <span>Qorshaha: {r.plan ?? "trial"}</span>
                   </div>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setPayFor(r);
-                    setPlan("monthly");
-                  }}
-                >
-                  Diiwaangeli lacag
-                </Button>
+                <div className="flex gap-2 shrink-0">
+                  <Button size="sm" variant="outline" onClick={() => openTrial(r)}>
+                    <CalendarClock className="h-4 w-4 mr-1" /> Trial
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setPayFor(r);
+                      setPlan("monthly");
+                    }}
+                  >
+                    Diiwaangeli lacag
+                  </Button>
+                </div>
+
               </div>
             );
           })}
