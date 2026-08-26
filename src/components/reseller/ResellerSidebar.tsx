@@ -30,7 +30,9 @@ export interface ResellerNavItem {
   title: string;
   titleSo: string;
   icon: any;
+  superAdminOnly?: boolean;
 }
+
 
 export interface ResellerNavGroup {
   label: string;
