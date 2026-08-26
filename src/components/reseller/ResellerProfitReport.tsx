@@ -264,27 +264,28 @@ export default function ResellerProfitReport() {
                   </thead>
                   <tbody>
                     {providerRows.map((r) => (
-                      <tr key={r.group_key} className="border-b last:border-b-0 hover:bg-muted/40">
-                        <td className="px-2 py-3 font-medium">{r.label}</td>
-                        <td className="px-2 py-3 text-center">
+                      <tr key={r.group_key} className="border-b last:border-b-0 hover:bg-muted/30">
+                        <td className="px-3 py-3 font-medium">{r.label}</td>
+                        <td className="px-3 py-3 text-center">
                           <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                             {((r.rate || 0) * 100).toFixed(1)}%
                           </span>
                         </td>
-                        <td className="px-2 py-3 text-center font-semibold">{r.orders}</td>
-                        <td className="px-2 py-3 text-right"><Amount value={r.revenue} tone="revenue" /></td>
-                        <td className="px-2 py-3 text-right"><Amount value={r.cost} tone="cost" /></td>
+                        <td className="px-3 py-3 text-center font-semibold">{r.orders}</td>
+                        <td className="px-3 py-3 text-right"><Amount value={r.revenue} tone="revenue" /></td>
+                        <td className="px-3 py-3 text-right"><Amount value={r.cost} tone="cost" /></td>
                         <ProfitCell row={r} />
                       </tr>
                     ))}
                     <tr className="bg-muted/40 font-semibold">
-                      <td className="px-2 py-3">{t.total}</td>
+                      <td className="px-3 py-3">{t.total}</td>
                       <td />
-                      <td className="px-2 py-3 text-center">{providerTotals.orders}</td>
-                      <td className="px-2 py-3 text-right"><Amount value={providerTotals.revenue} tone="revenue" /></td>
-                      <td className="px-2 py-3 text-right"><Amount value={providerTotals.cost} tone="cost" /></td>
+                      <td className="px-3 py-3 text-center">{providerTotals.orders}</td>
+                      <td className="px-3 py-3 text-right"><Amount value={providerTotals.revenue} tone="revenue" /></td>
+                      <td className="px-3 py-3 text-right"><Amount value={providerTotals.cost} tone="cost" /></td>
                       <ProfitCell row={providerTotals} />
                     </tr>
+
                   </tbody>
                 </table>
               </div>
