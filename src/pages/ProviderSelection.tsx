@@ -187,6 +187,25 @@ const ProviderSelection = () => {
         },
         staleTime: 30 * 1000,
       });
+      // Tiers-ka Jumlo horay u soo qabo si sheet-ku isla markiiba u muuqdo
+      queryClient.prefetchQuery({
+        queryKey: ['wholesaleTiers', p.id],
+        queryFn: async () => {
+          const { data, error } = await supabase.rpc('get_provider_wholesale_tiers', { provider_uuid: p.id });
+          if (error) throw error;
+          return data || [];
+        },
+        staleTime: 60_000,
+      });
+    });
+    queryClient.prefetchQuery({
+      queryKey: ['jumloPaymentMethods'],
+      queryFn: async () => {
+        const { data, error } = await supabase.rpc('get_active_payment_providers');
+        if (error) throw error;
+        return data || [];
+      },
+      staleTime: 60_000,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providers, tenantId]);
