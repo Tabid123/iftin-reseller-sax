@@ -85,8 +85,8 @@ export default function ResellerProfitReport() {
       .then(({ data }) => setProviders(data || []));
   }, []);
 
-  const loadProviderRows = useCallback(async () => {
-    setLoadingProviders(true);
+  const loadProviderRows = useCallback(async (silent = false) => {
+    if (!silent) setLoadingProviders(true);
     const { data, error } = await supabase.rpc('get_profit_report' as any, {
       p_start: startOfDay(providerDate).toISOString(),
       p_end: endOfDay(providerDate).toISOString(),
@@ -95,11 +95,11 @@ export default function ResellerProfitReport() {
     });
     if (error) console.error('profit report (provider) error', error);
     setProviderRows(mapRows(data));
-    setLoadingProviders(false);
+    if (!silent) setLoadingProviders(false);
   }, [providerDate]);
 
-  const loadDayRows = useCallback(async () => {
-    setLoadingDays(true);
+  const loadDayRows = useCallback(async (silent = false) => {
+    if (!silent) setLoadingDays(true);
     const { data, error } = await supabase.rpc('get_profit_report' as any, {
       p_start: dateFrom.toISOString(),
       p_end: dateTo.toISOString(),
@@ -108,11 +108,30 @@ export default function ResellerProfitReport() {
     });
     if (error) console.error('profit report (day) error', error);
     setDayRows(mapRows(data));
-    setLoadingDays(false);
+    if (!silent) setLoadingDays(false);
   }, [dateFrom, dateTo, selectedProvider]);
 
   useEffect(() => { loadProviderRows(); }, [loadProviderRows]);
   useEffect(() => { loadDayRows(); }, [loadDayRows]);
+
+  // Real-time: dalab cusub ama status isbeddelay → isla markiiba cusboonaysii
+  useEffect(() => {
+    const channel = supabase
+      .channel('profit-report-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        loadProviderRows(true);
+        loadDayRows(true);
+      })
+      .subscribe();
+    const interval = setInterval(() => {
+      loadProviderRows(true);
+      loadDayRows(true);
+    }, 30000);
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [loadProviderRows, loadDayRows]);
 
   const applyPeriod = (p: Period) => {
     const now = new Date();
