@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -44,42 +44,62 @@ export function ResellerStatCards({ onNavigate }: Props) {
   const [unmatched, setUnmatched] = useState(0);
   const [blocked, setBlocked] = useState(0);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const [summaryRes, devRes, unmatchedRes, blockedRes] = await Promise.all([
-        supabase.rpc('get_admin_analytics_summary'),
-        supabase.from('android_devices').select('id, last_ping_at').eq('is_active', true),
-        supabase.from('payment_receipts').select('id', { count: 'exact', head: true }).eq('status', 'unmatched'),
-        supabase.from('blocked_users').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      ]);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    const [summaryRes, devRes, unmatchedRes, blockedRes] = await Promise.all([
+      supabase.rpc('get_admin_analytics_summary'),
+      supabase.from('android_devices').select('id, last_ping_at').eq('is_active', true),
+      supabase.from('payment_receipts').select('id', { count: 'exact', head: true }).eq('status', 'unmatched'),
+      supabase.from('blocked_users').select('id', { count: 'exact', head: true }).eq('is_active', true),
+    ]);
 
-      const s = (summaryRes.data ?? {}) as any;
-      setData({
-        today: mapPeriod(s.today),
-        week: mapPeriod(s.week),
-        month: mapPeriod(s.month),
-        total: {
-          revenue: Number(s.total_revenue || 0),
-          cost: Number(s.total_cost || 0),
-          profit: Number(s.total_profit || 0),
-          orders: Number(s.total_orders || 0),
-          pending: Number(s.pending_orders || 0),
-          failed: Number(s.failed_orders || 0),
-          delivered: Number(s.delivered_orders || 0),
-        },
-      });
+    const s = (summaryRes.data ?? {}) as any;
+    setData({
+      today: mapPeriod(s.today),
+      week: mapPeriod(s.week),
+      month: mapPeriod(s.month),
+      total: {
+        revenue: Number(s.total_revenue || 0),
+        cost: Number(s.total_cost || 0),
+        profit: Number(s.total_profit || 0),
+        orders: Number(s.total_orders || 0),
+        pending: Number(s.pending_orders || 0),
+        failed: Number(s.failed_orders || 0),
+        delivered: Number(s.delivered_orders || 0),
+      },
+    });
 
-      const cutoff = Date.now() - 3 * 60 * 1000;
-      setDevicesOnline(
-        (devRes.data ?? []).filter((d: any) => d.last_ping_at && new Date(d.last_ping_at).getTime() > cutoff).length
-      );
-      setUnmatched(unmatchedRes.count ?? 0);
-      setBlocked(blockedRes.count ?? 0);
-      setLoading(false);
-    };
-    load();
+    const cutoff = Date.now() - 3 * 60 * 1000;
+    setDevicesOnline(
+      (devRes.data ?? []).filter((d: any) => d.last_ping_at && new Date(d.last_ping_at).getTime() > cutoff).length
+    );
+    setUnmatched(unmatchedRes.count ?? 0);
+    setBlocked(blockedRes.count ?? 0);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Real-time: isla markiiba cusboonaadi marka dalab/SMS/aalad/blocked is beddelaan
+  useEffect(() => {
+    const channel = supabase
+      .channel('reseller-stat-cards')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => load(true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_receipts' }, () => load(true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'android_devices' }, () => load(true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'blocked_users' }, () => load(true))
+      .subscribe();
+
+    // Fallback: 30 ilbiriqsi kasta si isu-cusboonaado
+    const interval = setInterval(() => load(true), 30000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [load]);
 
   const d = data[period];
 
