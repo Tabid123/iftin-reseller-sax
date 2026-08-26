@@ -189,9 +189,9 @@ const ProviderSelection = () => {
       });
       // Tiers-ka Jumlo horay u soo qabo si sheet-ku isla markiiba u muuqdo
       queryClient.prefetchQuery({
-        queryKey: ['wholesaleTiers', p.id],
+        queryKey: ['wholesaleTiers', p.id, tenantId],
         queryFn: async () => {
-          const { data, error } = await supabase.rpc('get_provider_wholesale_tiers', { provider_uuid: p.id });
+          const { data, error } = await supabase.rpc('get_provider_wholesale_tiers', { provider_uuid: p.id, p_tenant_id: tenantId });
           if (error) throw error;
           return data || [];
         },
