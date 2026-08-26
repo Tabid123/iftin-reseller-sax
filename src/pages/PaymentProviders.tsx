@@ -20,6 +20,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useConnectivity } from '@/contexts/ConnectivityContext';
 import { Capacitor } from '@capacitor/core';
 import { useTenant } from '@/contexts/TenantContext';
+import { fetchProviderPaymentNumber, pickPaymentNumber } from '@/lib/paymentNumber';
 interface PaymentProvider {
   id: string;
   provider_name: string;
@@ -87,6 +88,15 @@ const PaymentProviders = () => {
         return [];
       }
     },
+  });
+
+  // Tenant-scoped payment number configured on the data provider (providers_config)
+  const { data: providerPaymentNumber = null } = useQuery({
+    queryKey: ['providerPaymentNumber', packageData?.providerId, tenantId],
+    queryFn: () => fetchProviderPaymentNumber(packageData?.providerId, tenantId),
+    enabled: !!packageData?.providerId && !!tenantId && isReallyOnline,
+    staleTime: 30 * 1000,
+    retry: false,
   });
 
   // Fetch delivery instructions for the package's category
@@ -425,10 +435,8 @@ const PaymentProviders = () => {
       if (name.includes('jeeb')) return '*812*';
       return '*712*'; // EVC / e-Dahab default
     };
-    const resolvePaymentNumber = (p: any): string => {
-      if (p?.payment_number) return p.payment_number;
-      return '617195659';
-    };
+    const resolvePaymentNumber = (p: any): string =>
+      pickPaymentNumber(p?.payment_number, providerPaymentNumber, tenant?.contact_phone);
     const displayUssdPrefix = resolveUssdPrefix(selectedPaymentProvider);
     const displayPaymentNumber = resolvePaymentNumber(selectedPaymentProvider);
     const generatedUssdCode = `${displayUssdPrefix}${displayPaymentNumber}*${formattedDisplayAmount}#`;
@@ -456,7 +464,7 @@ const PaymentProviders = () => {
       const ussdPrefix = (selectedPayment?.ussd_prefix)
         || ((selectedPayment?.provider_name || '').toLowerCase().includes('jeeb') ? '*812*' : '*712*');
       const formattedAmount = formatUssdAmountOffline(amount);
-      const iftinPaymentNumber = selectedPayment?.payment_number || '617195659';
+      const iftinPaymentNumber = pickPaymentNumber(selectedPayment?.payment_number, providerPaymentNumber, tenant?.contact_phone);
       const ussdCode = `${ussdPrefix}${iftinPaymentNumber}*${formattedAmount}#`;
 
       // Hide modal IMMEDIATELY (no async work in front of dialer)
@@ -520,11 +528,11 @@ const PaymentProviders = () => {
 
       // Get Iftin payment number from app_settings (admin-configured)
       const cachedSettings = localStorage.getItem('offline_app_settings');
-      let iftinPaymentNumber = '617195659'; // Fallback default
+      let iftinPaymentNumber = ''; // resolved below
       let iftinPaymentPrefix = '*712*'; // Fallback default
 
       // Use payment_number from selected provider's DB row (per-provider)
-      iftinPaymentNumber = selectedPaymentProvider?.payment_number || '617195659';
+      iftinPaymentNumber = pickPaymentNumber(selectedPaymentProvider?.payment_number, providerPaymentNumber, tenant?.contact_phone);
 
       // ========================================
       // SERVER-SIDE RESERVATION (RPC) with 3s HARD TIMEOUT.
