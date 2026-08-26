@@ -170,7 +170,18 @@ export default function ResellerDashboard() {
             {activeTab === 'sim-pins' && <ResellerSimPins />}
             {activeTab === 'send-notification' && <SendNotification />}
             {activeTab === 'banners' && <ResellerBanners />}
-            {activeTab === 'apps' && <ResellerApps />}
+            {activeTab === 'apps' && (
+              isSuperAdmin === true ? (
+                <ResellerApps />
+              ) : isSuperAdmin === null ? (
+                <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin" /></div>
+              ) : (
+                <p className="py-10 text-center text-muted-foreground">
+                  {so ? 'Ma lihid fasax. Kani waa super admin keliya.' : 'Access denied. Super admin only.'}
+                </p>
+              )
+            )}
+
 
           </Suspense>
         </main>
