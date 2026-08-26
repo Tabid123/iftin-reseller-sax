@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Plus, Trash2, Save } from 'lucide-react';
 import { useTenant } from '@/contexts/TenantContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface PaymentProvider {
   id: string;
@@ -46,6 +47,7 @@ const QUICK_PAYMENTS = [
 
 export default function ResellerPaymentProviders() {
   const { currentTenantId } = useTenant();
+  const queryClient = useQueryClient();
   const [items, setItems] = useState<PaymentProvider[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -64,6 +66,13 @@ export default function ResellerPaymentProviders() {
     setLoading(false);
   };
 
+  const refreshStorefrontPayments = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['paymentProviders', currentTenantId] }),
+      queryClient.invalidateQueries({ queryKey: ['jumloPaymentMethods', currentTenantId] }),
+    ]);
+  };
+
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [currentTenantId]);
 
   const add = async () => {
@@ -79,6 +88,7 @@ export default function ResellerPaymentProviders() {
     if (error) { toast({ title: 'Khalad', description: error.message, variant: 'destructive' }); return; }
     setForm({ ...blank });
     toast({ title: 'Guul', description: 'Payment provider waa lagu daray' });
+    await refreshStorefrontPayments();
     load();
   };
 
@@ -101,6 +111,7 @@ export default function ResellerPaymentProviders() {
     setSaving(false);
     if (error) { toast({ title: 'Khalad', description: error.message, variant: 'destructive' }); return; }
     toast({ title: 'Guul', description: `${name} waa lagu daray` });
+    await refreshStorefrontPayments();
     load();
   };
 
@@ -115,6 +126,7 @@ export default function ResellerPaymentProviders() {
     if (error) { toast({ title: 'Khalad', description: error.message, variant: 'destructive' }); return; }
     setEditing(null);
     toast({ title: 'Guul', description: 'Waa la cusboonaysiiyay' });
+    await refreshStorefrontPayments();
     load();
   };
 
@@ -122,6 +134,7 @@ export default function ResellerPaymentProviders() {
     if (!confirm('Ma hubtaa?')) return;
     const { error } = await supabase.from('payment_providers_config').delete().eq('id', id).eq('tenant_id', currentTenantId);
     if (error) { toast({ title: 'Khalad', description: error.message, variant: 'destructive' }); return; }
+    await refreshStorefrontPayments();
     load();
   };
 

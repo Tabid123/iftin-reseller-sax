@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { showBannerAd, hideBannerAd } from '@/services/admob';
 import { logScreenView } from '@/services/firebase';
 import { useConnectivity } from '@/contexts/ConnectivityContext';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface Category {
   id: string;
@@ -42,6 +43,8 @@ const DataPackages = () => {
   const selectedPackageId = location.state?.selectedPackageId;
   const selectedCategoryId = location.state?.selectedCategoryId;
   const { isReallyOnline } = useConnectivity();
+  const { tenant } = useTenant();
+  const tenantId = tenant?.id ?? null;
   
   // Get offline context passed from category selection
   const isOffline = location.state?.isOffline || false;
@@ -84,16 +87,17 @@ const DataPackages = () => {
 
   // Prefetch payment providers immediately
   useEffect(() => {
+    if (!tenantId) return;
     queryClient.prefetchQuery({
-      queryKey: ['paymentProviders'],
+      queryKey: ['paymentProviders', tenantId],
       queryFn: async () => {
-        const { data, error } = await supabase.rpc('get_active_payment_providers');
+        const { data, error } = await supabase.rpc('get_active_payment_providers', { p_tenant_id: tenantId });
         if (error) throw error;
         return data || [];
       },
       staleTime: 30 * 1000,
     });
-  }, [queryClient]);
+  }, [queryClient, tenantId]);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories', provider],

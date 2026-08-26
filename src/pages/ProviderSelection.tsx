@@ -208,13 +208,13 @@ const ProviderSelection = () => {
       });
     });
     queryClient.prefetchQuery({
-      queryKey: ['jumloPaymentMethods'],
+      queryKey: ['jumloPaymentMethods', tenantId],
       queryFn: async () => {
-        const { data, error } = await supabase.rpc('get_active_payment_providers');
+        const { data, error } = await supabase.rpc('get_active_payment_providers', { p_tenant_id: tenantId });
         if (error) throw error;
         return data || [];
       },
-      staleTime: 60_000,
+      staleTime: 30_000,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providers, tenantId]);
