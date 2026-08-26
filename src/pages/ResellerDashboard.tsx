@@ -64,7 +64,9 @@ export default function ResellerDashboard() {
   const { language } = useLanguage();
   const so = language === 'so';
   const { tenant, logoUrl, loading: tenantLoading } = useTenant();
+  const isSuperAdmin = useIsSuperAdmin();
   const [activeTab, setActiveTab] = useState('dashboard');
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [checking, setChecking] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
