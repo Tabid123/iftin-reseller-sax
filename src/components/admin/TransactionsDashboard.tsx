@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Search, ChevronRight, ChevronLeft, TrendingUp, FileDown, FileSpreadsheet } from 'lucide-react';
+import { Loader2, Search, ChevronLeft, FileDown, FileSpreadsheet } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format } from 'date-fns';
 import { formatPrice } from '@/lib/utils';
@@ -162,81 +162,66 @@ export function TransactionsDashboard() {
 
   const sToday = statsData?.transactions_today ?? 0;
   const sSalesToday = statsData?.sales_today ?? 0;
+  const sCostToday = statsData?.cost_today ?? 0;
   const sSalesMonth = statsData?.sales_this_month ?? 0;
+  const sCostMonth = statsData?.cost_this_month ?? 0;
   const sProfit = statsData?.total_profit ?? 0;
+  const sCostPeriod = statsData?.cost_period ?? 0;
+
+  const periodLabel = periodFilter === 'today' ? 'Today' : periodFilter === 'yesterday' ? 'Yesterday' : periodFilter === 'week' ? 'This Week' : periodFilter === 'month' ? 'This Month' : periodFilter === 'year' ? 'This Year' : 'All Time';
 
   return (
-    <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-blue-500 text-white border-0 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex flex-col h-full">
-              <p className="text-sm text-blue-100 font-medium">Transactions Today</p>
-              <p className="text-4xl font-bold mt-2">{sToday}</p>
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-blue-400">
-                <span className="text-sm text-blue-100">View Details</span>
-                <ChevronRight className="h-5 w-5" />
-              </div>
-            </div>
+    <div className="space-y-3">
+      {/* Summary Cards — one compact row */}
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-3">
+        <Card className="bg-blue-500 text-white border-0 shadow-md">
+          <CardContent className="p-2 sm:p-4">
+            <p className="text-[10px] sm:text-xs text-blue-100 font-medium truncate">Transactions</p>
+            <p className="text-sm sm:text-2xl font-bold mt-0.5 truncate">{sToday}</p>
+            <p className="text-[9px] sm:text-[11px] text-blue-100 mt-1 truncate">Cost: ${Number(sCostToday).toFixed(2)}</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-purple-600 text-white border-0 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex flex-col h-full">
-              <p className="text-sm text-purple-100 font-medium">Sales Today</p>
-              <p className="text-4xl font-bold mt-2">${Number(sSalesToday).toFixed(2)}</p>
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-purple-400">
-                <span className="text-sm text-purple-100">View Details</span>
-                <ChevronRight className="h-5 w-5" />
-              </div>
-            </div>
+        <Card className="bg-purple-600 text-white border-0 shadow-md">
+          <CardContent className="p-2 sm:p-4">
+            <p className="text-[10px] sm:text-xs text-purple-100 font-medium truncate">Sales</p>
+            <p className="text-sm sm:text-2xl font-bold mt-0.5 truncate">${Number(sSalesToday).toFixed(2)}</p>
+            <p className="text-[9px] sm:text-[11px] text-purple-100 mt-1 truncate">Cost: ${Number(sCostToday).toFixed(2)}</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-600 text-white border-0 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex flex-col h-full">
-              <p className="text-sm text-gray-300 font-medium">Sales This Month</p>
-              <p className="text-4xl font-bold mt-2">${Number(sSalesMonth).toFixed(2)}</p>
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-500">
-                <span className="text-sm text-gray-300">View Details</span>
-                <ChevronRight className="h-5 w-5" />
-              </div>
-            </div>
+        <Card className="bg-gray-600 text-white border-0 shadow-md">
+          <CardContent className="p-2 sm:p-4">
+            <p className="text-[10px] sm:text-xs text-gray-300 font-medium truncate">Monthly</p>
+            <p className="text-sm sm:text-2xl font-bold mt-0.5 truncate">${Number(sSalesMonth).toFixed(2)}</p>
+            <p className="text-[9px] sm:text-[11px] text-gray-300 mt-1 truncate">Cost: ${Number(sCostMonth).toFixed(2)}</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-emerald-500 text-white border-0 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex flex-col h-full">
-              <p className="text-sm text-emerald-100 font-medium">
-                {periodFilter === 'today' ? "Today's" : periodFilter === 'yesterday' ? "Yesterday's" : periodFilter === 'week' ? "Week's" : periodFilter === 'month' ? "Month's" : periodFilter === 'year' ? "Year's" : 'Total'} Profit
-              </p>
-              <p className="text-4xl font-bold mt-2">${Number(sProfit).toFixed(2)}</p>
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-emerald-400">
-                <span className="text-sm text-emerald-100">View Details</span>
-                <TrendingUp className="h-5 w-5" />
-              </div>
-            </div>
+        <Card className="bg-emerald-500 text-white border-0 shadow-md">
+          <CardContent className="p-2 sm:p-4">
+            <p className="text-[10px] sm:text-xs text-emerald-100 font-medium truncate">Profit</p>
+            <p className="text-sm sm:text-2xl font-bold mt-0.5 truncate">${Number(sProfit).toFixed(2)}</p>
+            <p className="text-[9px] sm:text-[11px] text-emerald-100 mt-1 truncate">Cost: ${Number(sCostPeriod).toFixed(2)}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={language === 'so' ? 'Raadi Phone/ID...' : 'Search by Phone/ID...'}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+      {/* Search — full width */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder={language === 'so' ? 'Raadi Phone/ID...' : 'Search by Phone/ID...'}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 h-9 text-sm"
+        />
+      </div>
+
+      {/* Filters + Export — one row */}
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full md:w-40">
+          <SelectTrigger className="h-9 flex-1 min-w-0 text-xs px-2">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -247,7 +232,7 @@ export function TransactionsDashboard() {
           </SelectContent>
         </Select>
         <Select value={providerFilter} onValueChange={setProviderFilter}>
-          <SelectTrigger className="w-full md:w-44">
+          <SelectTrigger className="h-9 flex-1 min-w-0 text-xs px-2">
             <SelectValue placeholder="Provider" />
           </SelectTrigger>
           <SelectContent>
@@ -258,7 +243,7 @@ export function TransactionsDashboard() {
           </SelectContent>
         </Select>
         <Select value={periodFilter} onValueChange={setPeriodFilter}>
-          <SelectTrigger className="w-full md:w-40">
+          <SelectTrigger className="h-9 flex-1 min-w-0 text-xs px-2">
             <SelectValue placeholder="Period" />
           </SelectTrigger>
           <SelectContent>
@@ -273,24 +258,26 @@ export function TransactionsDashboard() {
         <Button
           variant="outline"
           size="sm"
+          className="h-9 px-2 shrink-0"
           onClick={() => exportTransactionsPDF(transactions, {
             totalCount, totalSales, totalProfit,
-            period: periodFilter === 'today' ? 'Today' : periodFilter === 'yesterday' ? 'Yesterday' : periodFilter === 'week' ? 'This Week' : periodFilter === 'month' ? 'This Month' : periodFilter === 'year' ? 'This Year' : 'All Time'
+            period: periodLabel
           })}
           disabled={transactions.length === 0}
         >
-          <FileDown className="h-4 w-4 mr-1" /> PDF
+          <FileDown className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">PDF</span>
         </Button>
         <Button
           variant="outline"
           size="sm"
+          className="h-9 px-2 shrink-0"
           onClick={() => exportTransactionsExcel(transactions, {
             totalCount, totalSales, totalProfit,
-            period: periodFilter === 'today' ? 'Today' : periodFilter === 'yesterday' ? 'Yesterday' : periodFilter === 'week' ? 'This Week' : periodFilter === 'month' ? 'This Month' : periodFilter === 'year' ? 'This Year' : 'All Time'
+            period: periodLabel
           })}
           disabled={transactions.length === 0}
         >
-          <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
+          <FileSpreadsheet className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Excel</span>
         </Button>
       </div>
 
