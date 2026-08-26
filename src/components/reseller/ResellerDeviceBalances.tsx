@@ -174,7 +174,7 @@ export default function ResellerDeviceBalances() {
           {so ? 'Aalad lama helin' : 'No devices yet'}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
           {devices.map((d) => {
             const online = d.lastPing && Date.now() - new Date(d.lastPing).getTime() < 3 * 60 * 1000;
             return (
