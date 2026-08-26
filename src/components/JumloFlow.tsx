@@ -71,7 +71,7 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
       if (error) throw error;
       return (data as any) || [];
     },
-    enabled: !!providerId,
+    enabled: !!providerId && !!tenantId,
     staleTime: 60_000,
   });
 
@@ -251,7 +251,7 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
                 <>
                   {tiers.length === 0 ? (
                     <div className="py-8 flex flex-col items-center text-gray-500">
-                      {tiersLoading ? (
+                      {(tiersLoading || !tenantId) ? (
                         <>
                           <Loader2 className="w-6 h-6 animate-spin mb-2" />
                           <p className="text-sm">Soo dejinaya tiers...</p>
