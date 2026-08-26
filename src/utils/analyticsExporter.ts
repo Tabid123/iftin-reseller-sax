@@ -17,6 +17,8 @@ interface TransactionRow {
   provider_name: string;
   cost_price: number;
   evoucher_rate: number;
+  cost_cash?: number;
+  profit?: number;
 }
 
 interface ExportSummary {

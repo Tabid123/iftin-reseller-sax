@@ -25,6 +25,10 @@ interface Transaction {
   provider_id: string;
   cost_price: number;
   evoucher_rate: number;
+  cost_ev?: number;
+  cost_cash?: number;
+  rate_pct?: number;
+  profit?: number;
   sender_phone?: string;
   receiver_phone?: string;
   provider_name: string;
@@ -32,11 +36,12 @@ interface Transaction {
 
 const PAGE_SIZE = 50;
 
-const calculateProfit = (sellingPrice: number, costPrice: number, evoucherRate: number): number => {
-  const commission = sellingPrice * evoucherRate;
-  const totalReceived = sellingPrice + commission;
-  return totalReceived - costPrice;
-};
+// Profit is computed server-side: selling - cost_ev / (1 + rate)
+// (jumlo: cost_ev = topup_amount, rate = tier intake_rate %)
+const getProfit = (t: Transaction): number =>
+  t.profit ?? (t.selling_price * (1 + (t.evoucher_rate || 0)) - (t.cost_price || 0));
+
+const getCost = (t: Transaction): number => t.cost_cash ?? t.cost_price ?? 0;
 
 export function TransactionsDashboard() {
   const { language } = useLanguage();
