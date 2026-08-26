@@ -304,7 +304,7 @@ export function TransactionsDashboard() {
             {/* Mobile cards */}
             <div className="md:hidden divide-y">
               {transactions.map((t) => {
-                const profit = calculateProfit(t.selling_price, t.cost_price || 0, t.evoucher_rate || 0);
+                const profit = getProfit(t);
                 const isPositiveProfit = profit > 0;
 
                 const isOpen = expandedId === t.id;
