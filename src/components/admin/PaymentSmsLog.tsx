@@ -386,103 +386,102 @@ export function PaymentSmsLog() {
         <TabsContent value="sms-log" className="mt-4">
           <Card>
             <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" />
-                    {language === 'so' ? 'Lacagaha Soo Galay (EVC Plus)' : 'Incoming Payments (EVC Plus)'}
-                  </CardTitle>
-                  <CardDescription>
-                    {language === 'so' ? 'Dhammaan SMS-yada lacagaha EVC Plus' : 'All EVC Plus payment SMS messages'}
-                  </CardDescription>
-                </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
-                  <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={loadReceipts} disabled={loading}>
-                    <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                    {language === 'so' ? 'Cusboonaysii' : 'Refresh'}
-                  </Button>
-                  <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={exportToCSV} disabled={receipts.length === 0}>
-                    <Download className="h-4 w-4 mr-2" />
-                    CSV
-                  </Button>
-                </div>
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  {language === 'so' ? 'Lacagaha Soo Galay (EVC Plus)' : 'Incoming Payments (EVC Plus)'}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'so' ? 'Dhammaan SMS-yada lacagaha EVC Plus' : 'All EVC Plus payment SMS messages'}
+                </CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-        {/* Filters */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={language === 'so' ? 'Raadi phone...' : 'Search phone...'}
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          
-          <Select value={dateFilter} onValueChange={setDateFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder={language === 'so' ? 'Taariikhda' : 'Date'} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{language === 'so' ? 'Dhamaan' : 'All'}</SelectItem>
-              <SelectItem value="today">{language === 'so' ? 'Maanta' : 'Today'}</SelectItem>
-              <SelectItem value="yesterday">{language === 'so' ? 'Shalay' : 'Yesterday'}</SelectItem>
-              <SelectItem value="7days">{language === 'so' ? '7 Maalmood' : '7 Days'}</SelectItem>
-              <SelectItem value="30days">{language === 'so' ? '30 Maalmood' : '30 Days'}</SelectItem>
-            </SelectContent>
-          </Select>
+            <CardContent className="space-y-3">
+              {/* Action + Search row: Cusboonaysii, CSV, Raadi — all in 1 row */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="outline" size="sm" onClick={loadReceipts} disabled={loading} className="shrink-0">
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  {language === 'so' ? 'Cusboonaysii' : 'Refresh'}
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportToCSV} disabled={receipts.length === 0} className="shrink-0">
+                  <Download className="h-4 w-4 mr-2" />
+                  CSV
+                </Button>
+                <div className="relative min-w-0 flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={language === 'so' ? 'Raadi phone...' : 'Search phone...'}
+                    className="pl-9"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
 
-          <Select value={providerFilter} onValueChange={setProviderFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder={language === 'so' ? 'Shirkad' : 'Provider'} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{language === 'so' ? 'Dhammaan' : 'All Providers'}</SelectItem>
-              {providers.map(p => (
-                <SelectItem key={p.id} value={p.provider_name}>{p.provider_name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              {/* Filters: date, provider, status — all in 1 row */}
+              <div className="grid grid-cols-3 gap-2">
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === 'so' ? 'Taariikhda' : 'Date'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{language === 'so' ? 'Dhamaan' : 'All'}</SelectItem>
+                    <SelectItem value="today">{language === 'so' ? 'Maanta' : 'Today'}</SelectItem>
+                    <SelectItem value="yesterday">{language === 'so' ? 'Shalay' : 'Yesterday'}</SelectItem>
+                    <SelectItem value="7days">{language === 'so' ? '7 Maalmood' : '7 Days'}</SelectItem>
+                    <SelectItem value="30days">{language === 'so' ? '30 Maalmood' : '30 Days'}</SelectItem>
+                  </SelectContent>
+                </Select>
 
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{language === 'so' ? 'Dhammaan' : 'All Status'}</SelectItem>
-              <SelectItem value="matched">✅ Matched</SelectItem>
-              <SelectItem value="pending">⏳ Pending</SelectItem>
-              <SelectItem value="unmatched">❌ Unmatched</SelectItem>
-              <SelectItem value="blocked">🚫 Blocked</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+                <Select value={providerFilter} onValueChange={setProviderFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === 'so' ? 'Shirkad' : 'Provider'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{language === 'so' ? 'Dhammaan' : 'All Providers'}</SelectItem>
+                    {providers.map(p => (
+                      <SelectItem key={p.id} value={p.provider_name}>{p.provider_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-        {/* Stats Summary */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-          <div className="col-span-2 rounded-lg bg-muted/50 p-3 text-center sm:col-span-1">
-            <p className="text-2xl font-bold">{receipts.length}</p>
-            <p className="text-xs text-muted-foreground">{language === 'so' ? 'Wadarta' : 'Total'}</p>
-          </div>
-          <div className="bg-green-500/10 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-green-600">{receipts.filter(r => r.status === 'matched').length}</p>
-            <p className="text-xs text-muted-foreground">Matched</p>
-          </div>
-          <div className="bg-yellow-500/10 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-yellow-600">{receipts.filter(r => r.status === 'pending').length}</p>
-            <p className="text-xs text-muted-foreground">Pending</p>
-          </div>
-          <div className="bg-red-500/10 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-red-600">{receipts.filter(r => r.status === 'unmatched').length}</p>
-            <p className="text-xs text-muted-foreground">Unmatched</p>
-          </div>
-          <div className="bg-orange-500/10 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-orange-600">{receipts.filter(r => r.status === 'blocked').length}</p>
-            <p className="text-xs text-muted-foreground">Blocked</p>
-          </div>
-        </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{language === 'so' ? 'Dhammaan' : 'All Status'}</SelectItem>
+                    <SelectItem value="matched">✅ Matched</SelectItem>
+                    <SelectItem value="pending">⏳ Pending</SelectItem>
+                    <SelectItem value="unmatched">❌ Unmatched</SelectItem>
+                    <SelectItem value="blocked">🚫 Blocked</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Stats Summary: 1 card per row */}
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
+                  <p className="text-sm text-muted-foreground">{language === 'so' ? 'Wadarta' : 'Total'}</p>
+                  <p className="text-xl font-bold">{receipts.length}</p>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-green-500/10 p-3">
+                  <p className="text-sm text-muted-foreground">Matched</p>
+                  <p className="text-xl font-bold text-green-600">{receipts.filter(r => r.status === 'matched').length}</p>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-yellow-500/10 p-3">
+                  <p className="text-sm text-muted-foreground">Pending</p>
+                  <p className="text-xl font-bold text-yellow-600">{receipts.filter(r => r.status === 'pending').length}</p>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-red-500/10 p-3">
+                  <p className="text-sm text-muted-foreground">Unmatched</p>
+                  <p className="text-xl font-bold text-red-600">{receipts.filter(r => r.status === 'unmatched').length}</p>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-orange-500/10 p-3">
+                  <p className="text-sm text-muted-foreground">Blocked</p>
+                  <p className="text-xl font-bold text-orange-600">{receipts.filter(r => r.status === 'blocked').length}</p>
+                </div>
+              </div>
 
         {/* Table */}
         {loading ? (
