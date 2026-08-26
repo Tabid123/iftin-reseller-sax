@@ -18,14 +18,23 @@ interface SubRow {
   tenant_status: string;
   plan: string | null;
   amount: number | null;
+  trial_starts_at?: string | null;
   trial_ends_at: string | null;
   current_period_end: string | null;
   grace_ends_at: string | null;
+  grace_days?: number | null;
   state: string;
   days_left: number | null;
   last_payment_at: string | null;
   total_paid: number | null;
 }
+
+/** yyyy-MM-ddTHH:mm in local time for <input type="datetime-local"> */
+const toLocalInput = (d: Date) => {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+
 
 const STATE_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   trialing: { label: "Tijaabo", variant: "secondary" },
