@@ -146,22 +146,6 @@ export function ResellerStatCards({ onNavigate }: Props) {
       footer: 'from-amber-600 to-yellow-700',
       tab: 'devices',
     },
-    {
-      value: String(blocked),
-      title: so ? 'Users Xidhan' : 'Blocked Users',
-      sub: so ? 'Liiska madow' : 'Blacklist',
-      gradient: 'from-slate-600 to-slate-700',
-      footer: 'from-slate-800 to-slate-900',
-      tab: 'transactions-dashboard',
-    },
-    {
-      value: `$${d.cost.toFixed(2)}`,
-      title: so ? 'Qarashka' : 'Cost',
-      sub: so ? 'Qiimaha iibsiga' : 'Purchase cost',
-      gradient: 'from-indigo-500 to-violet-600',
-      footer: 'from-indigo-700 to-violet-800',
-      tab: 'wholesale-tiers',
-    },
   ];
 
   return (
