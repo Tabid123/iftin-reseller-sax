@@ -115,9 +115,14 @@ export function ResellerSidebar({ activeTab, onTabChange, onLogout }: Props) {
   const { tenant, logoUrl } = useTenant();
   const { language } = useLanguage();
   const so = language === 'so';
+  const isSuperAdmin = useIsSuperAdmin();
+  const visibleGroups = RESELLER_GROUPS
+    .map((g) => ({ ...g, items: g.items.filter((i) => !i.superAdminOnly || isSuperAdmin === true) }))
+    .filter((g) => g.items.length > 0);
   const [open, setOpen] = useState<string[]>(
     RESELLER_GROUPS.filter((g) => g.items.some((i) => i.value === activeTab)).map((g) => g.label)
   );
+
 
   const toggle = (label: string) =>
     setOpen((prev) => (prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]));
