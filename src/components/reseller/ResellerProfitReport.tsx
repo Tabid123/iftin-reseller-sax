@@ -184,11 +184,12 @@ export default function ResellerProfitReport() {
   );
 
   const ProfitCell = ({ row }: { row: ReportRow | typeof providerTotals }) => (
-    <td className="px-2 py-3 text-right">
+    <td className="px-3 py-3 text-right">
       <Amount value={row.profit} tone="profit" />
       <div className="text-[10px] text-muted-foreground">≈ {money(row.profit_ev)} EV</div>
     </td>
   );
+
 
   return (
     <div className="space-y-6">
