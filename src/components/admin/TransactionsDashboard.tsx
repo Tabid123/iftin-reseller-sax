@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Search, ChevronLeft, FileDown, FileSpreadsheet } from 'lucide-react';
+import { Loader2, Search, ChevronRight, ChevronLeft, FileDown, FileSpreadsheet } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format } from 'date-fns';
 import { formatPrice } from '@/lib/utils';
