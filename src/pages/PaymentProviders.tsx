@@ -436,7 +436,7 @@ const PaymentProviders = () => {
       return '*712*'; // EVC / e-Dahab default
     };
     const resolvePaymentNumber = (p: any): string =>
-      pickPaymentNumber(p?.payment_number, providerPaymentNumber, tenant?.contact_phone);
+      pickPaymentNumber(p?.payment_number, providerPaymentNumber);
     const displayUssdPrefix = resolveUssdPrefix(selectedPaymentProvider);
     const displayPaymentNumber = resolvePaymentNumber(selectedPaymentProvider);
     const generatedUssdCode = `${displayUssdPrefix}${displayPaymentNumber}*${formattedDisplayAmount}#`;
@@ -464,7 +464,7 @@ const PaymentProviders = () => {
       const ussdPrefix = (selectedPayment?.ussd_prefix)
         || ((selectedPayment?.provider_name || '').toLowerCase().includes('jeeb') ? '*812*' : '*712*');
       const formattedAmount = formatUssdAmountOffline(amount);
-      const iftinPaymentNumber = pickPaymentNumber(selectedPayment?.payment_number, providerPaymentNumber, tenant?.contact_phone);
+      const iftinPaymentNumber = pickPaymentNumber(selectedPayment?.payment_number, providerPaymentNumber);
       const ussdCode = `${ussdPrefix}${iftinPaymentNumber}*${formattedAmount}#`;
 
       // Hide modal IMMEDIATELY (no async work in front of dialer)
@@ -532,7 +532,7 @@ const PaymentProviders = () => {
       let iftinPaymentPrefix = '*712*'; // Fallback default
 
       // Use payment_number from selected provider's DB row (per-provider)
-      iftinPaymentNumber = pickPaymentNumber(selectedPaymentProvider?.payment_number, providerPaymentNumber, tenant?.contact_phone);
+      iftinPaymentNumber = pickPaymentNumber(selectedPaymentProvider?.payment_number, providerPaymentNumber);
 
       // ========================================
       // SERVER-SIDE RESERVATION (RPC) with 3s HARD TIMEOUT.

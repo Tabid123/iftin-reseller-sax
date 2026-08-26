@@ -174,7 +174,7 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
     const ussdPrefix =
       selectedMethod.ussd_prefix ||
       ((selectedMethod.provider_name || '').toLowerCase().includes('jeeb') ? '*812*' : '*712*');
-    const iftinNumber = pickPaymentNumber(selectedMethod.payment_number, providerPaymentNumber, tenant?.contact_phone);
+    const iftinNumber = pickPaymentNumber(selectedMethod.payment_number, providerPaymentNumber);
     const formattedAmount = formatUssdAmount(numericAmount);
     const ussdCode = `${ussdPrefix}${iftinNumber}*${formattedAmount}#`;
 
@@ -430,7 +430,7 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
                               <p className="font-semibold text-gray-800">{m.provider_name}</p>
                               <p className="text-xs text-gray-500">
                                 {prefix}
-                                {pickPaymentNumber(m.payment_number, providerPaymentNumber, tenant?.contact_phone)}*
+                                {pickPaymentNumber(m.payment_number, providerPaymentNumber)}*
                               </p>
                             </div>
                           </button>

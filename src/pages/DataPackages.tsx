@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useParams, useLocation } from "@/lib/router-compat";
 import { ArrowLeft, Wifi, Smartphone, Clock, Zap, Copy, Check, Phone, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -338,7 +338,7 @@ const DataPackages = () => {
     // Determine USSD prefix and payment number based on sender's provider
     const senderPrefix = senderPhone?.substring(0, 2) || '';
     const isSomnet = senderPrefix === '68';
-    let iftinPaymentNumber = pickPaymentNumber(offlineProviderPaymentNumber, tenant?.contact_phone);
+    let iftinPaymentNumber = pickPaymentNumber(offlineProviderPaymentNumber);
     let iftinPaymentPrefix = isSomnet ? '*812*' : '*712*';
     
     // Build USSD code correctly without encoding
@@ -669,7 +669,7 @@ const DataPackages = () => {
               const amount = selectedPackageData?.price?.replace('$', '') || '0';
               const sp = senderPhone?.substring(0, 2) || '';
               const isSn = sp === '68';
-              let iftinPaymentNumber = pickPaymentNumber(offlineProviderPaymentNumber, tenant?.contact_phone);
+              let iftinPaymentNumber = pickPaymentNumber(offlineProviderPaymentNumber);
               let iftinPaymentPrefix = isSn ? '*812*' : '*712*';
               
               const amountFormatted = amount.replace('.', '*');
