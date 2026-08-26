@@ -17,6 +17,8 @@ interface TransactionRow {
   provider_name: string;
   cost_price: number;
   evoucher_rate: number;
+  cost_cash?: number;
+  profit?: number;
 }
 
 interface ExportSummary {
@@ -96,8 +98,8 @@ export async function exportTransactionsExcel(
     Package: t.package_name,
     'Data Amount': t.data_amount,
     'Selling Price': t.selling_price,
-    'Cost Price': t.cost_price,
-    Profit: (t.selling_price * (1 + t.evoucher_rate)) - t.cost_price,
+    'Cost Price': t.cost_cash ?? t.cost_price,
+    Profit: t.profit ?? ((t.selling_price * (1 + t.evoucher_rate)) - t.cost_price),
     Status: t.delivery_status || t.status,
     Provider: t.provider_name,
   }));

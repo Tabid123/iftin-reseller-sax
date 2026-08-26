@@ -25,6 +25,10 @@ interface Transaction {
   provider_id: string;
   cost_price: number;
   evoucher_rate: number;
+  cost_ev?: number;
+  cost_cash?: number;
+  rate_pct?: number;
+  profit?: number;
   sender_phone?: string;
   receiver_phone?: string;
   provider_name: string;
@@ -32,11 +36,12 @@ interface Transaction {
 
 const PAGE_SIZE = 50;
 
-const calculateProfit = (sellingPrice: number, costPrice: number, evoucherRate: number): number => {
-  const commission = sellingPrice * evoucherRate;
-  const totalReceived = sellingPrice + commission;
-  return totalReceived - costPrice;
-};
+// Profit is computed server-side: selling - cost_ev / (1 + rate)
+// (jumlo: cost_ev = topup_amount, rate = tier intake_rate %)
+const getProfit = (t: Transaction): number =>
+  t.profit ?? (t.selling_price * (1 + (t.evoucher_rate || 0)) - (t.cost_price || 0));
+
+const getCost = (t: Transaction): number => t.cost_cash ?? t.cost_price ?? 0;
 
 export function TransactionsDashboard() {
   const { language } = useLanguage();
@@ -299,7 +304,7 @@ export function TransactionsDashboard() {
             {/* Mobile cards */}
             <div className="md:hidden divide-y">
               {transactions.map((t) => {
-                const profit = calculateProfit(t.selling_price, t.cost_price || 0, t.evoucher_rate || 0);
+                const profit = getProfit(t);
                 const isPositiveProfit = profit > 0;
 
                 const isOpen = expandedId === t.id;
@@ -338,7 +343,7 @@ export function TransactionsDashboard() {
                           </div>
                           <div className="rounded-md bg-muted px-1 py-1.5">
                             <p className="text-[9px] text-muted-foreground">Cost</p>
-                            <p className="text-xs font-semibold">${Number(t.cost_price || 0).toFixed(2)}</p>
+                            <p className="text-xs font-semibold">${Number(getCost(t)).toFixed(2)}</p>
                           </div>
                           <div className={`rounded-md px-1 py-1.5 ${isPositiveProfit ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
                             <p className="text-[9px] text-muted-foreground">Profit</p>
@@ -383,7 +388,7 @@ export function TransactionsDashboard() {
                 </TableHeader>
                 <TableBody>
                   {transactions.map((t, index) => {
-                    const profit = calculateProfit(t.selling_price, t.cost_price || 0, t.evoucher_rate || 0);
+                    const profit = getProfit(t);
                     const isPositiveProfit = profit > 0;
 
                     return (
@@ -404,7 +409,7 @@ export function TransactionsDashboard() {
                           ${Number(t.selling_price).toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right text-muted-foreground">
-                          ${Number(t.cost_price || 0).toFixed(2)}
+                          ${Number(getCost(t)).toFixed(2)}
                         </TableCell>
                         <TableCell className={`text-right font-semibold ${isPositiveProfit ? 'text-green-600' : 'text-red-600'}`}>
                           {isPositiveProfit ? '+' : ''}${formatPrice(profit)}
