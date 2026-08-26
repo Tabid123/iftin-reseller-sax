@@ -400,19 +400,36 @@ export const DailyOrdersManager = () => {
 
             return (
               <Card key={order.id} className={cn(isCancelled && 'opacity-60')}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium text-muted-foreground">#{idx + 1}</span>
-                        {getStatusBadge(order)}
-                        {order.is_manual && <Badge variant="outline" className="text-xs">Manual</Badge>}
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(order.created_at), 'HH:mm')}
-                        </span>
-                      </div>
-                      <div className="font-semibold">{order.package_name}</div>
-                      <div className="text-sm text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+                <CardContent className="p-0">
+                  {/* Dropdown header — click to expand */}
+                  <button
+                    type="button"
+                    onClick={() => setExpandedIds(prev => {
+                      const next = new Set(prev);
+                      if (next.has(order.id)) next.delete(order.id);
+                      else next.add(order.id);
+                      return next;
+                    })}
+                    className="w-full flex items-center justify-between gap-2 p-3 text-left hover:bg-muted/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <span className="text-sm font-medium text-muted-foreground shrink-0">#{idx + 1}</span>
+                      {getStatusBadge(order)}
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {format(new Date(order.created_at), 'HH:mm')}
+                      </span>
+                      <span className="font-semibold truncate">{order.package_name}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-sm font-semibold">{formatPrice(Number(order.selling_price))}</span>
+                      <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", expandedIds.has(order.id) && "rotate-180")} />
+                    </div>
+                  </button>
+
+                  {/* Expandable details */}
+                  {expandedIds.has(order.id) && (
+                    <div className="px-3 pb-3 pt-1 border-t space-y-2">
+                      <div className="text-sm text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 pt-2">
                         <span>📱 {formatPhone(order.receiver_phone)}</span>
                         <span>💰 {formatPrice(Number(order.selling_price))}</span>
                         {order.sender_phone && <span>📤 {formatPhone(order.sender_phone)}</span>}
@@ -420,55 +437,55 @@ export const DailyOrdersManager = () => {
                       {order.delivery_notes && (
                         <div className="text-xs text-muted-foreground italic">📝 {order.delivery_notes}</div>
                       )}
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDetailsOrder(order)} title="Details">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditNotesOrder(order); setEditNotesText(order.delivery_notes || ''); }} title="Edit Notes">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        {isPending && (
+                          <Button
+                            variant="ghost" size="icon" className="h-8 w-8 text-green-600"
+                            onClick={() => handleMarkDelivered(order.id)}
+                            disabled={actionLoading === order.id}
+                            title="Mark Delivered"
+                          >
+                            {actionLoading === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                          </Button>
+                        )}
+                        {(isPending || isFailed) && (
+                          <Button
+                            variant="ghost" size="icon" className="h-8 w-8 text-red-600"
+                            onClick={() => { setCancelOrderId(order.id); setCancelDialogOpen(true); }}
+                            title="Cancel"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {isFailed && (
+                          <Button
+                            variant="ghost" size="icon" className="h-8 w-8 text-blue-600"
+                            onClick={() => handleRetryDelivery(order)}
+                            disabled={actionLoading === order.id}
+                            title="Retry"
+                          >
+                            {actionLoading === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+                          </Button>
+                        )}
+                        {isCancelled && (
+                          <Button
+                            variant="ghost" size="icon" className="h-8 w-8 text-primary"
+                            onClick={() => handleRestoreOrder(order.id)}
+                            disabled={actionLoading === order.id}
+                            title="Restore"
+                          >
+                            {actionLoading === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDetailsOrder(order)} title="Details">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditNotesOrder(order); setEditNotesText(order.delivery_notes || ''); }} title="Edit Notes">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      {isPending && (
-                        <Button
-                          variant="ghost" size="icon" className="h-8 w-8 text-green-600"
-                          onClick={() => handleMarkDelivered(order.id)}
-                          disabled={actionLoading === order.id}
-                          title="Mark Delivered"
-                        >
-                          {actionLoading === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
-                        </Button>
-                      )}
-                      {(isPending || isFailed) && (
-                        <Button
-                          variant="ghost" size="icon" className="h-8 w-8 text-red-600"
-                          onClick={() => { setCancelOrderId(order.id); setCancelDialogOpen(true); }}
-                          title="Cancel"
-                        >
-                          <XCircle className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {isFailed && (
-                        <Button
-                          variant="ghost" size="icon" className="h-8 w-8 text-blue-600"
-                          onClick={() => handleRetryDelivery(order)}
-                          disabled={actionLoading === order.id}
-                          title="Retry"
-                        >
-                          {actionLoading === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
-                        </Button>
-                      )}
-                      {isCancelled && (
-                        <Button
-                          variant="ghost" size="icon" className="h-8 w-8 text-primary"
-                          onClick={() => handleRestoreOrder(order.id)}
-                          disabled={actionLoading === order.id}
-                          title="Restore"
-                        >
-                          {actionLoading === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             );
