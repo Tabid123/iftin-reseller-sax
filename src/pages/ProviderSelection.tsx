@@ -483,7 +483,7 @@ const ProviderSelection = () => {
                   </div>
                   {rate !== undefined && (
                     <div className="shrink-0 text-right">
-                      <p className="text-lg font-extrabold text-green-600 leading-none">{rate}%</p>
+                      <p className="text-lg font-extrabold text-green-600 leading-none">{Number(rate).toFixed(2).replace(/\.00$/, '')}%</p>
                       <p className="text-[11px] text-gray-400 mt-0.5">Rate</p>
                     </div>
                   )}
