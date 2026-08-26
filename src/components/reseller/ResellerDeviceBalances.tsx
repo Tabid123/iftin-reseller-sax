@@ -42,6 +42,25 @@ const styleFor = (provider: string) => {
 
 const isHormuud = (p: string) => (p || '').toLowerCase().includes('hormuud');
 
+const moneyFmt = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const fmtMoney = (v: number) => moneyFmt.format(Number.isFinite(v) ? v : 0);
+
+const fmtRate = (v: number) => {
+  const n = Number.isFinite(v) ? v : 0;
+  const pct = Math.abs(n) <= 1 ? n * 100 : n;
+  return `${pct.toFixed(1)}%`;
+};
+
+const AmountDot = () => (
+  <span className="ml-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500 align-middle" />
+);
+
 export default function ResellerDeviceBalances() {
   const { language } = useLanguage();
   const so = language === 'so';
