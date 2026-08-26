@@ -61,14 +61,14 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
     }
   }, [open]);
 
-  const { data: tiers = [] } = useQuery<Tier[]>({
+  const { data: tiers = [], isLoading: tiersLoading } = useQuery<Tier[]>({
     queryKey: ['wholesaleTiers', providerId],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_provider_wholesale_tiers', { provider_uuid: providerId });
       if (error) throw error;
       return (data as any) || [];
     },
-    enabled: open && !!providerId,
+    enabled: !!providerId,
     staleTime: 60_000,
   });
 
@@ -248,8 +248,14 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
                 <>
                   {tiers.length === 0 ? (
                     <div className="py-8 flex flex-col items-center text-gray-500">
-                      <Loader2 className="w-6 h-6 animate-spin mb-2" />
-                      <p className="text-sm">Soo dejinaya tiers...</p>
+                      {tiersLoading ? (
+                        <>
+                          <Loader2 className="w-6 h-6 animate-spin mb-2" />
+                          <p className="text-sm">Soo dejinaya tiers...</p>
+                        </>
+                      ) : (
+                        <p className="text-sm">Tier ma jiro shirkaddan.</p>
+                      )}
                     </div>
                   ) : (
                     <>
