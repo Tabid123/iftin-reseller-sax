@@ -467,8 +467,63 @@ class UssdAccessibilityService : AccessibilityService() {
         multiDialogRunnable = null
         terminalWatcherRunnable?.let { handler.removeCallbacks(it) }
         terminalWatcherRunnable = null
+        cancelStallWatchdog()
         isProcessingDialog = false
         Log.d(TAG, "🛑 Cancelled pending auto-actions ($reason)")
+    }
+
+    private fun cancelStallWatchdog() {
+        stallWatchdogRunnable?.let { handler.removeCallbacks(it) }
+        stallWatchdogRunnable = null
+        stallWatchdogKey = ""
+    }
+
+    /**
+     * Somtel/Amtel sometimes leave a dialog on screen with nothing written into it, or
+     * written but never sent. If the SAME dialog is still on screen after
+     * STALL_WATCHDOG_MS, clear the pending write/send state and run the unified
+     * write -> wait -> verify -> send path again on that dialog.
+     */
+    private fun armStallWatchdog(key: String) {
+        if (key.isBlank()) return
+        if (stallWatchdogKey == key && stallWatchdogRunnable != null) return
+        cancelStallWatchdog()
+        stallWatchdogKey = key
+        val armedSession = ussdSessionToken
+        val r = Runnable {
+            stallWatchdogRunnable = null
+            if (armedSession != ussdSessionToken) return@Runnable
+            val rt = rootInActiveWindow ?: return@Runnable
+            try {
+                val liveKey = "$ussdSessionToken|" + dialogSignature(rt)
+                if (liveKey != key) return@Runnable  // screen moved on — nothing stalled
+                if (stallRecoveries >= MAX_STALL_RECOVERIES) {
+                    Log.w(TAG, "🛑 Stall watchdog gave up after $stallRecoveries recoveries")
+                    return@Runnable
+                }
+                stallRecoveries++
+                Log.w(TAG, "🔁 Stall detected — retrying write→wait→verify→send (attempt $stallRecoveries)")
+                scheduledSubmitRunnable?.let { handler.removeCallbacks(it) }
+                scheduledSubmitRunnable = null
+                awaitingScheduledSubmit = false
+                submitDialogSignature = ""
+                scheduledStepOrder = -1
+                lastAttemptKey = ""
+                lastAttemptAtMs = 0L
+                // Allow this dialog to be settled + processed again.
+                lastSettledDialogKey = ""
+                pendingSettleDialogKey = ""
+                stallWatchdogKey = ""
+                val liveText = extractDialogText(rt).orEmpty()
+                if (liveText.isNotBlank()) tryHandleDynamicFlow(rt, liveText)
+            } catch (e: Exception) {
+                Log.e(TAG, "Stall watchdog error: ${e.message}")
+            } finally {
+                try { rt.recycle() } catch (_: Exception) {}
+            }
+        }
+        stallWatchdogRunnable = r
+        handler.postDelayed(r, STALL_WATCHDOG_MS)
     }
 
     /**
