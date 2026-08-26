@@ -57,6 +57,49 @@ export default function SubscriptionsManager() {
   const [method, setMethod] = useState("manual");
   const [reference, setReference] = useState("");
   const [saving, setSaving] = useState(false);
+  const [trialFor, setTrialFor] = useState<SubRow | null>(null);
+  const [trialStart, setTrialStart] = useState("");
+  const [trialEnd, setTrialEnd] = useState("");
+  const [graceDays, setGraceDays] = useState("3");
+  const [savingTrial, setSavingTrial] = useState(false);
+
+  const openTrial = (r: SubRow) => {
+    const start = r.trial_starts_at ? new Date(r.trial_starts_at) : new Date();
+    const end = r.trial_ends_at
+      ? new Date(r.trial_ends_at)
+      : r.current_period_end
+        ? new Date(r.current_period_end)
+        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    setTrialStart(toLocalInput(start));
+    setTrialEnd(toLocalInput(end));
+    setGraceDays(String(r.grace_days ?? 3));
+    setTrialFor(r);
+  };
+
+  const submitTrial = async () => {
+    if (!trialFor) return;
+    if (!trialStart || !trialEnd || new Date(trialEnd) <= new Date(trialStart)) {
+      toast.error("Taariikhda dhammaadku waa inay ka danbeysaa tan bilowga");
+      return;
+    }
+    setSavingTrial(true);
+    const { data, error } = await supabase.rpc("set_tenant_trial", {
+      _tenant: trialFor.tenant_id,
+      _starts_at: new Date(trialStart).toISOString(),
+      _ends_at: new Date(trialEnd).toISOString(),
+      _grace_days: Math.max(0, Number(graceDays) || 0),
+    } as any);
+    setSavingTrial(false);
+    const res = data as { ok?: boolean; error?: string } | null;
+    if (error || !res?.ok) {
+      toast.error(res?.error || error?.message || "Lama cusboonaysiin");
+      return;
+    }
+    toast.success("Muddada tijaabada waa la cusboonaysiiyay");
+    setTrialFor(null);
+    load();
+  };
+
 
   const load = async () => {
     setLoading(true);
