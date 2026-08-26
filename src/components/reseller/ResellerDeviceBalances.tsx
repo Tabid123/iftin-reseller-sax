@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -67,9 +67,8 @@ export default function ResellerDeviceBalances() {
   const [loading, setLoading] = useState(true);
   const [devices, setDevices] = useState<DeviceView[]>([]);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
+  const load = useCallback(async (showSpinner = false) => {
+      if (showSpinner) setLoading(true);
       const [devRes, balRes, provRes] = await Promise.all([
         supabase
           .from('android_devices')
