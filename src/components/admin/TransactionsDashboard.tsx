@@ -99,8 +99,8 @@ export function TransactionsDashboard() {
   }, [providerFilter, periodFilter]);
 
   // Load paginated transactions
-  const loadTransactions = useCallback(async () => {
-    setLoading(true);
+  const loadTransactions = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     const { data, error } = await supabase.rpc('get_admin_transactions_paginated', {
       p_search: debouncedSearch || null,
       p_status: statusFilter,
@@ -119,7 +119,7 @@ export function TransactionsDashboard() {
       setTotalSales(result.total_sales || 0);
       setTotalProfit(result.total_profit || 0);
     }
-    setLoading(false);
+    if (!silent) setLoading(false);
   }, [debouncedSearch, statusFilter, providerFilter, periodFilter, currentPage]);
 
   // Reset page when filters change
@@ -130,6 +130,25 @@ export function TransactionsDashboard() {
   useEffect(() => {
     loadTransactions();
     loadStats();
+  }, [loadTransactions, loadStats]);
+
+  // Real-time: dalab cusub ama status isbeddelay → isla markiiba cusboonaysii
+  useEffect(() => {
+    const channel = supabase
+      .channel('transactions-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        loadTransactions(true);
+        loadStats();
+      })
+      .subscribe();
+    const interval = setInterval(() => {
+      loadTransactions(true);
+      loadStats();
+    }, 30000);
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, [loadTransactions, loadStats]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
