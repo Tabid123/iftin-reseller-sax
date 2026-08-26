@@ -1917,9 +1917,11 @@ export type Database = {
           created_at: string
           display_order: number
           id: string
+          intake_rate: number
           is_active: boolean
           max_amount: number
           min_amount: number
+          payout_rate: number
           profit_rate: number
           provider_id: string
           tenant_id: string | null
@@ -1930,9 +1932,11 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
+          intake_rate?: number
           is_active?: boolean
           max_amount: number
           min_amount: number
+          payout_rate?: number
           profit_rate: number
           provider_id: string
           tenant_id?: string | null
@@ -1943,9 +1947,11 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
+          intake_rate?: number
           is_active?: boolean
           max_amount?: number
           min_amount?: number
+          payout_rate?: number
           profit_rate?: number
           provider_id?: string
           tenant_id?: string | null
@@ -2753,9 +2759,11 @@ export type Database = {
           created_at: string | null
           display_order: number | null
           id: string | null
+          intake_rate: number | null
           is_active: boolean | null
           max_amount: number | null
           min_amount: number | null
+          payout_rate: number | null
           profit_rate: number | null
           provider_id: string | null
           tenant_id: string | null
@@ -2766,9 +2774,11 @@ export type Database = {
           created_at?: string | null
           display_order?: number | null
           id?: string | null
+          intake_rate?: number | null
           is_active?: boolean | null
           max_amount?: number | null
           min_amount?: number | null
+          payout_rate?: number | null
           profit_rate?: number | null
           provider_id?: string | null
           tenant_id?: string | null
@@ -2779,9 +2789,11 @@ export type Database = {
           created_at?: string | null
           display_order?: number | null
           id?: string | null
+          intake_rate?: number | null
           is_active?: boolean | null
           max_amount?: number | null
           min_amount?: number | null
+          payout_rate?: number | null
           profit_rate?: number | null
           provider_id?: string | null
           tenant_id?: string | null
@@ -3073,9 +3085,11 @@ export type Database = {
           created_at: string
           display_order: number
           id: string
+          intake_rate: number
           is_active: boolean
           max_amount: number
           min_amount: number
+          payout_rate: number
           profit_rate: number
           provider_id: string
           tenant_id: string | null
