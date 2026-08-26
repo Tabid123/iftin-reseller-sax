@@ -42,17 +42,15 @@ export function ResellerStatCards({ onNavigate }: Props) {
   });
   const [devicesOnline, setDevicesOnline] = useState(0);
   const [unmatched, setUnmatched] = useState(0);
-  const [smsLogs, setSmsLogs] = useState(0);
   const [blocked, setBlocked] = useState(0);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const [summaryRes, devRes, unmatchedRes, smsRes, blockedRes] = await Promise.all([
+      const [summaryRes, devRes, unmatchedRes, blockedRes] = await Promise.all([
         supabase.rpc('get_admin_analytics_summary'),
         supabase.from('android_devices').select('id, last_ping_at').eq('is_active', true),
         supabase.from('payment_receipts').select('id', { count: 'exact', head: true }).eq('status', 'unmatched'),
-        supabase.from('payment_receipts').select('id', { count: 'exact', head: true }),
         supabase.from('blocked_users').select('id', { count: 'exact', head: true }).eq('is_active', true),
       ]);
 
@@ -77,7 +75,6 @@ export function ResellerStatCards({ onNavigate }: Props) {
         (devRes.data ?? []).filter((d: any) => d.last_ping_at && new Date(d.last_ping_at).getTime() > cutoff).length
       );
       setUnmatched(unmatchedRes.count ?? 0);
-      setSmsLogs(smsRes.count ?? 0);
       setBlocked(blockedRes.count ?? 0);
       setLoading(false);
     };
@@ -131,12 +128,12 @@ export function ResellerStatCards({ onNavigate }: Props) {
       tab: 'sms-payments',
     },
     {
-      value: String(smsLogs),
-      title: so ? 'SMS Lacago' : 'SMS Payments',
-      sub: so ? 'Dhammaan lacagaha SMS' : 'All SMS receipts',
+      value: String(data.total.orders),
+      title: so ? 'Dalabyada' : 'Orders',
+      sub: so ? 'Dhammaan dalabyada' : 'All orders',
       gradient: 'from-pink-500 to-fuchsia-600',
       footer: 'from-pink-700 to-fuchsia-800',
-      tab: 'sms-payments',
+      tab: 'transactions-dashboard',
     },
     {
       value: String(devicesOnline),
