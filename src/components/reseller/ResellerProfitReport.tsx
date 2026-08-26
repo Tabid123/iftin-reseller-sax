@@ -304,12 +304,13 @@ export default function ResellerProfitReport() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-2 sm:inline-flex sm:gap-2">
             {(['today', 'week', 'month', 'year'] as const).map((p) => (
               <Button
                 key={p}
                 size="sm"
                 variant={period === p ? 'default' : 'outline'}
+                className="sm:min-w-[88px]"
                 onClick={() => applyPeriod(p)}
               >
                 {p === 'today' ? (so ? 'Maanta' : 'Today')
@@ -319,6 +320,7 @@ export default function ResellerProfitReport() {
               </Button>
             ))}
           </div>
+
 
           <div className="grid grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap">
             <div className="flex min-w-0 items-center gap-1.5">
