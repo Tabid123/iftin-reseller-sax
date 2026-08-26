@@ -36,10 +36,11 @@ interface Transaction {
 
 const PAGE_SIZE = 50;
 
-// Profit is computed server-side: selling - cost_ev / (1 + rate)
-// (jumlo: cost_ev = topup_amount, rate = tier intake_rate %)
+// Profit is computed server-side:
+// jumlo: selling_price × (intake_rate − payout_rate) / 100
+// regular: selling_price − cost_price
 const getProfit = (t: Transaction): number =>
-  t.profit ?? (t.selling_price * (1 + (t.evoucher_rate || 0)) - (t.cost_price || 0));
+  t.profit ?? (t.selling_price - (t.cost_price || 0));
 
 const getCost = (t: Transaction): number => t.cost_cash ?? t.cost_price ?? 0;
 
