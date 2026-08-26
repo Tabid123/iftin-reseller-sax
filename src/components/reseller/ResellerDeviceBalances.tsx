@@ -126,9 +126,22 @@ export default function ResellerDeviceBalances() {
 
       setDevices(mapped);
       setLoading(false);
-    };
-    load();
   }, []);
+
+  useEffect(() => {
+    load(true);
+    const channel = supabase
+      .channel('reseller-device-balances')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sim_balances' }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'android_devices' }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'providers_config' }, () => load())
+      .subscribe();
+    const t = setInterval(() => load(), 30000);
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(t);
+    };
+  }, [load]);
 
   const allSims = devices.flatMap((d) => d.sims);
   const totalEvoucher = allSims.reduce(
