@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { X, Loader2, ArrowLeft, Send, Layers, Crown, Gem, Sparkles, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 
@@ -45,6 +45,7 @@ const isIOS = () =>
 
 export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, providerName, brandColor }) => {
   const { tenant } = useTenant();
+  const queryClient = useQueryClient();
   const tenantId = tenant?.id ?? null;
   const [step, setStep] = useState<Step>('tier');
   const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
@@ -75,16 +76,29 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
     staleTime: 60_000,
   });
 
-  const { data: paymentMethods = [] } = useQuery<PaymentProvider[]>({
-    queryKey: ['jumloPaymentMethods'],
+  const { data: paymentMethods = [], isLoading: paymentMethodsLoading } = useQuery<PaymentProvider[]>({
+    queryKey: ['jumloPaymentMethods', tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_active_payment_providers');
+      const { data, error } = await supabase.rpc('get_active_payment_providers', { p_tenant_id: tenantId });
       if (error) throw error;
       return (data as any) || [];
     },
-    enabled: open,
-    staleTime: 60_000,
+    enabled: open && !!tenantId,
+    staleTime: 30_000,
   });
+
+  useEffect(() => {
+    if (!open || !tenantId) return;
+    const channel = supabase
+      .channel(`jumlo-payments-${tenantId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'payment_providers_config', filter: `tenant_id=eq.${tenantId}` },
+        () => void queryClient.invalidateQueries({ queryKey: ['jumloPaymentMethods', tenantId] }),
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [open, tenantId, queryClient]);
 
   // Auto-skip tier selection when only one tier exists
   useEffect(() => {
@@ -375,10 +389,12 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
                   </div>
 
                   <p className="text-sm font-semibold text-gray-700 mb-2">Select Payment Method</p>
-                  {paymentMethods.length === 0 ? (
+                  {paymentMethodsLoading || !tenantId ? (
                     <div className="py-8 flex justify-center">
                       <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                     </div>
+                  ) : paymentMethods.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-gray-500">Payment method lama darin tenant-kan.</p>
                   ) : (
                     <div className="space-y-2">
                       {paymentMethods.map((m) => {

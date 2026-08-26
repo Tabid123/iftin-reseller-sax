@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useConnectivity } from '@/contexts/ConnectivityContext';
 import { Capacitor } from '@capacitor/core';
+import { useTenant } from '@/contexts/TenantContext';
 interface PaymentProvider {
   id: string;
   provider_name: string;
@@ -35,6 +36,9 @@ interface PaymentProvider {
 const PaymentProviders = () => {
   const navigate = useNavigate();
   const { isReallyOnline } = useConnectivity();
+  const { tenant } = useTenant();
+  const tenantId = tenant?.id ?? null;
+  const paymentCacheKey = tenantId ? `offline_payment_providers:${tenantId}` : null;
   const { queueOrder } = useOfflineSync();
   const {
     provider
@@ -56,26 +60,28 @@ const PaymentProviders = () => {
     data: paymentProviders = [],
     isLoading
   } = useQuery({
-    queryKey: ['paymentProviders'],
+    queryKey: ['paymentProviders', tenantId],
     queryFn: async () => {
       // Try cache first if offline
       if (!isReallyOnline) {
-        const cached = localStorage.getItem('offline_payment_providers');
+        const cached = paymentCacheKey ? localStorage.getItem(paymentCacheKey) : null;
         return cached ? JSON.parse(cached) : [];
       }
       
       const {
         data,
         error
-      } = await supabase.rpc('get_active_payment_providers');
+      } = await supabase.rpc('get_active_payment_providers', { p_tenant_id: tenantId });
       if (error) throw error;
+      if (paymentCacheKey) localStorage.setItem(paymentCacheKey, JSON.stringify(data || []));
       return data || [];
     },
+    enabled: !!tenantId,
     staleTime: 30 * 1000,
     retry: false,
     initialData: () => {
       try {
-        const cached = localStorage.getItem('offline_payment_providers');
+        const cached = paymentCacheKey ? localStorage.getItem(paymentCacheKey) : null;
         return cached ? JSON.parse(cached) : [];
       } catch (e) {
         return [];
