@@ -201,6 +201,10 @@ class UssdAccessibilityService : AccessibilityService() {
         // Dialog settle: every dialog gets 1s to finish re-rendering before we write.
         private const val DIALOG_SETTLE_MS = 1000L
         private const val SOMNET_DIALOG_SETTLE_MS = DIALOG_SETTLE_MS
+        // If a dialog stays untouched (nothing written / nothing sent) for this long,
+        // the watchdog clears the pending state and re-runs write -> verify -> send.
+        private const val STALL_WATCHDOG_MS = 6000L
+        private const val MAX_STALL_RECOVERIES = 3
         // VERIFY stage: delay between verify attempts when the value is not visible yet.
         private const val RECHECK_DELAY_MS = 900L
         private const val MAX_VERIFY_ATTEMPTS = 6
