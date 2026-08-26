@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { Loader2, Smartphone, Signal, Battery, Wallet } from 'lucide-react';
+import amtelLogo from '@/assets/providers/amtel-logo.png';
 import { formatDistanceToNow } from 'date-fns';
 
 interface SimView {
@@ -41,6 +42,19 @@ const styleFor = (provider: string) => {
 };
 
 const isHormuud = (p: string) => (p || '').toLowerCase().includes('hormuud');
+
+const PROVIDER_LOGOS: { match: string; src: string }[] = [
+  { match: 'hormuud', src: '/storage/logos/hormuud.jpg' },
+  { match: 'somtel', src: '/storage/logos/somtel.png' },
+  { match: 'somnet', src: '/storage/logos/somnet.jpg' },
+  { match: 'somlink', src: '/storage/logos/somlink.jpg' },
+  { match: 'amtel', src: amtelLogo },
+];
+
+const logoFor = (provider: string) => {
+  const p = (provider || '').toLowerCase();
+  return PROVIDER_LOGOS.find((l) => p.includes(l.match))?.src ?? null;
+};
 
 const moneyFmt = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -222,6 +236,7 @@ export default function ResellerDeviceBalances() {
                 <div className="space-y-2 p-2 sm:space-y-3 sm:p-3">
                   {d.sims.map((sim) => {
                     const st = styleFor(sim.provider);
+                    const logo = logoFor(sim.provider);
                     return (
                       <div
                         key={`${d.id}-${sim.slot}`}
@@ -233,7 +248,16 @@ export default function ResellerDeviceBalances() {
                             st.head
                           )}
                         >
-                          <Signal className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                          {logo ? (
+                            <img
+                              src={logo}
+                              alt={`${sim.provider} logo`}
+                              className="h-5 w-5 shrink-0 rounded-md bg-background object-contain p-0.5 sm:h-6 sm:w-6"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <Signal className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                          )}
                           <span className="truncate text-[11px] font-semibold sm:text-sm">
                             SIM{sim.slot}: {sim.provider}
                           </span>
