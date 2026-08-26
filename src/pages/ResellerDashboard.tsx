@@ -148,7 +148,12 @@ export default function ResellerDashboard() {
           </nav>
 
           <Suspense fallback={<TabLoader />}>
-            {activeTab === 'dashboard' && <ResellerStatCards key={refreshKey} onNavigate={changeTab} />}
+            {activeTab === 'dashboard' && (
+              <div className="space-y-6">
+                <ResellerStatCards key={refreshKey} onNavigate={changeTab} />
+                <ResellerDeviceBalances key={`dev-${refreshKey}`} />
+              </div>
+            )}
             {activeTab === 'transactions-dashboard' && <TransactionsDashboard />}
             {activeTab === 'sms-payments' && <PaymentSmsLog />}
             {activeTab === 'payment' && <ResellerPaymentProviders />}
