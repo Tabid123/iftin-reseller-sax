@@ -94,7 +94,7 @@ export const RESELLER_GROUPS: ResellerNavGroup[] = [
     icon: Settings,
     items: [
       { value: 'payment', title: 'Payment Providers', titleSo: 'Payment', icon: CreditCard },
-      { value: 'apps', title: 'Apps', titleSo: 'Apps', icon: Smartphone },
+      { value: 'apps', title: 'Apps', titleSo: 'Apps', icon: Smartphone, superAdminOnly: true },
     ],
 
   },
