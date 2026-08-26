@@ -24,6 +24,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
 import ThemeToggle from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ResellerNavItem {
   value: string;
@@ -113,6 +115,20 @@ export function ResellerSidebar({ activeTab, onTabChange, onLogout }: Props) {
   const { tenant, logoUrl } = useTenant();
   const { language } = useLanguage();
   const so = language === 'so';
+  const { data: hasApps = false } = useQuery({
+    queryKey: ['manual-apks-available'],
+    queryFn: async () => {
+      const { data, error } = await supabase.storage.from('apps').list('', { limit: 100 });
+      if (error) return false;
+      return (data ?? []).filter((f) => f.name !== '.emptyFolderPlaceholder').length > 0;
+    },
+  });
+
+  const groups = RESELLER_GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => (i.value === 'apps' ? hasApps : true)),
+  })).filter((g) => g.items.length > 0);
+
   const [open, setOpen] = useState<string[]>(
     RESELLER_GROUPS.filter((g) => g.items.some((i) => i.value === activeTab)).map((g) => g.label)
   );
@@ -153,7 +169,7 @@ export function ResellerSidebar({ activeTab, onTabChange, onLogout }: Props) {
           Dashboard
         </button>
 
-        {RESELLER_GROUPS.map((group) => {
+        {groups.map((group) => {
           const Icon = group.icon;
           const isOpen = open.includes(group.label);
           return (
