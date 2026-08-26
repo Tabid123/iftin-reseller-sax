@@ -76,6 +76,13 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
     staleTime: 60_000,
   });
 
+  const { data: providerPaymentNumber = null } = useQuery<string | null>({
+    queryKey: ['providerPaymentNumber', providerId, tenantId],
+    queryFn: () => fetchProviderPaymentNumber(providerId, tenantId),
+    enabled: open && !!providerId && !!tenantId,
+    staleTime: 30_000,
+  });
+
   const { data: paymentMethods = [], isLoading: paymentMethodsLoading } = useQuery<PaymentProvider[]>({
     queryKey: ['jumloPaymentMethods', tenantId],
     queryFn: async () => {
@@ -86,6 +93,7 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
     enabled: open && !!tenantId,
     staleTime: 30_000,
   });
+
 
   useEffect(() => {
     if (!open || !tenantId) return;
