@@ -15,6 +15,7 @@ import {
   LogOut,
   Building2,
   Settings,
+  TrendingUp,
 } from 'lucide-react';
 import { NavLink } from "@/lib/router-compat";
 import { useTenant } from '@/contexts/TenantContext';
@@ -62,6 +63,7 @@ export const RESELLER_GROUPS: ResellerNavGroup[] = [
     items: [
       { value: 'providers', title: 'Companies', titleSo: 'Shirkadaha', icon: Building2 },
       { value: 'wholesale-tiers', title: 'Wholesale Tiers', titleSo: 'Jumlo Tiers', icon: DollarSign },
+      { value: 'profit-calculator', title: 'Profit Calculator', titleSo: 'Xisaabinta Faa\u2019iida', icon: TrendingUp },
     ],
   },
   {
