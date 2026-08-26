@@ -201,6 +201,10 @@ class UssdAccessibilityService : AccessibilityService() {
         // Dialog settle: every dialog gets 1s to finish re-rendering before we write.
         private const val DIALOG_SETTLE_MS = 1000L
         private const val SOMNET_DIALOG_SETTLE_MS = DIALOG_SETTLE_MS
+        // If a dialog stays untouched (nothing written / nothing sent) for this long,
+        // the watchdog clears the pending state and re-runs write -> verify -> send.
+        private const val STALL_WATCHDOG_MS = 6000L
+        private const val MAX_STALL_RECOVERIES = 3
         // VERIFY stage: delay between verify attempts when the value is not visible yet.
         private const val RECHECK_DELAY_MS = 900L
         private const val MAX_VERIFY_ATTEMPTS = 6
@@ -225,9 +229,13 @@ class UssdAccessibilityService : AccessibilityService() {
     private var clickCount = 0
     private var lastClickTime = 0L
     private var lastDialogFingerprint = ""
-    // Somnet dialog settle bookkeeping (see SOMNET_DIALOG_SETTLE_MS).
+    // Dialog settle bookkeeping (see DIALOG_SETTLE_MS) — all providers.
     @Volatile private var lastSettledDialogKey = ""
     @Volatile private var pendingSettleDialogKey = ""
+    // Stall watchdog: recovers a dialog that never got written/sent (Somtel/Amtel).
+    private var stallWatchdogRunnable: Runnable? = null
+    @Volatile private var stallWatchdogKey = ""
+    @Volatile private var stallRecoveries = 0
     private var multiDialogRunnable: Runnable? = null
     private var terminalWatcherRunnable: Runnable? = null
 
@@ -401,6 +409,7 @@ class UssdAccessibilityService : AccessibilityService() {
         completedFlowSteps.clear()
         lastSettledDialogKey = ""
         pendingSettleDialogKey = ""
+        stallRecoveries = 0
         getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
             .remove(KEY_COMPLETED_FLOW_STEPS)
             .remove(KEY_FLOW_STATE_SESSION)
@@ -459,8 +468,63 @@ class UssdAccessibilityService : AccessibilityService() {
         multiDialogRunnable = null
         terminalWatcherRunnable?.let { handler.removeCallbacks(it) }
         terminalWatcherRunnable = null
+        cancelStallWatchdog()
         isProcessingDialog = false
         Log.d(TAG, "🛑 Cancelled pending auto-actions ($reason)")
+    }
+
+    private fun cancelStallWatchdog() {
+        stallWatchdogRunnable?.let { handler.removeCallbacks(it) }
+        stallWatchdogRunnable = null
+        stallWatchdogKey = ""
+    }
+
+    /**
+     * Somtel/Amtel sometimes leave a dialog on screen with nothing written into it, or
+     * written but never sent. If the SAME dialog is still on screen after
+     * STALL_WATCHDOG_MS, clear the pending write/send state and run the unified
+     * write -> wait -> verify -> send path again on that dialog.
+     */
+    private fun armStallWatchdog(key: String) {
+        if (key.isBlank()) return
+        if (stallWatchdogKey == key && stallWatchdogRunnable != null) return
+        cancelStallWatchdog()
+        stallWatchdogKey = key
+        val armedSession = ussdSessionToken
+        val r = Runnable {
+            stallWatchdogRunnable = null
+            if (armedSession != ussdSessionToken) return@Runnable
+            val rt = rootInActiveWindow ?: return@Runnable
+            try {
+                val liveKey = "$ussdSessionToken|" + dialogSignature(rt)
+                if (liveKey != key) return@Runnable  // screen moved on — nothing stalled
+                if (stallRecoveries >= MAX_STALL_RECOVERIES) {
+                    Log.w(TAG, "🛑 Stall watchdog gave up after $stallRecoveries recoveries")
+                    return@Runnable
+                }
+                stallRecoveries++
+                Log.w(TAG, "🔁 Stall detected — retrying write→wait→verify→send (attempt $stallRecoveries)")
+                scheduledSubmitRunnable?.let { handler.removeCallbacks(it) }
+                scheduledSubmitRunnable = null
+                awaitingScheduledSubmit = false
+                submitDialogSignature = ""
+                scheduledStepOrder = -1
+                lastAttemptKey = ""
+                lastAttemptAtMs = 0L
+                // Allow this dialog to be settled + processed again.
+                lastSettledDialogKey = ""
+                pendingSettleDialogKey = ""
+                stallWatchdogKey = ""
+                val liveText = extractDialogText(rt).orEmpty()
+                if (liveText.isNotBlank()) tryHandleDynamicFlow(rt, liveText)
+            } catch (e: Exception) {
+                Log.e(TAG, "Stall watchdog error: ${e.message}")
+            } finally {
+                try { rt.recycle() } catch (_: Exception) {}
+            }
+        }
+        stallWatchdogRunnable = r
+        handler.postDelayed(r, STALL_WATCHDOG_MS)
     }
 
     /**
@@ -1920,16 +1984,17 @@ class UssdAccessibilityService : AccessibilityService() {
         }
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-        // ===== SOMNET: 1s settle before touching a freshly rendered dialog =====
-        // Somnet re-renders its dialogs after the first paint; acting immediately can
-        // press Send while the input field is still empty. Wait 1s, re-read the tree,
-        // and only then run the normal write -> verify -> send path.
-        val providerName = prefs.getString("current_provider", null)?.lowercase().orEmpty()
-        if (providerName.contains("somnet")) {
+        // ===== ALL PROVIDERS: 1s settle before touching a freshly rendered dialog =====
+        // Somnet, Somtel and Amtel all re-render their dialogs after the first paint;
+        // acting immediately can press Send while the input field is still empty (the
+        // "dialog just sits there" bug). Wait 1s, re-read the tree, and only then run
+        // the normal write -> verify -> send path. Same behaviour for every provider.
+        run {
             val settleKey = "$ussdSessionToken|" + dialogSignature(root)
             if (settleKey != lastSettledDialogKey) {
                 if (settleKey == pendingSettleDialogKey) {
-                    Log.i(TAG, "⏳ Somnet settle already pending for this dialog")
+                    Log.i(TAG, "⏳ Dialog settle already pending for this dialog")
+                    armStallWatchdog(settleKey)
                     return true
                 }
                 pendingSettleDialogKey = settleKey
@@ -1941,7 +2006,7 @@ class UssdAccessibilityService : AccessibilityService() {
                     try {
                         val liveKey = "$ussdSessionToken|" + dialogSignature(rt)
                         if (liveKey != settleKey) {
-                            Log.i(TAG, "🚫 Somnet settle dropped — dialog changed")
+                            Log.i(TAG, "🚫 Dialog settle dropped — dialog changed")
                             return@postDelayed
                         }
                         lastSettledDialogKey = settleKey
@@ -1950,11 +2015,14 @@ class UssdAccessibilityService : AccessibilityService() {
                     } finally {
                         try { rt.recycle() } catch (_: Exception) {}
                     }
-                }, SOMNET_DIALOG_SETTLE_MS)
-                Log.i(TAG, "⏱️ Somnet dialog settle scheduled (${SOMNET_DIALOG_SETTLE_MS}ms)")
+                }, DIALOG_SETTLE_MS)
+                Log.i(TAG, "⏱️ Dialog settle scheduled (${DIALOG_SETTLE_MS}ms)")
+                armStallWatchdog(settleKey)
                 return true
             }
         }
+        armStallWatchdog("$ussdSessionToken|" + dialogSignature(root))
+
 
         // Prefer the explicit flow_id assigned to this provider (admin-configured),
         // fall back to trigger-code lookup for backward compatibility.
