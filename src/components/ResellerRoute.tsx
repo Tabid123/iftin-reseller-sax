@@ -15,6 +15,12 @@ const ResellerRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const [allowed, setAllowed] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [blocked, setBlocked] = useState<{
+    reason: 'expired' | 'scheduled';
+    endedAt: string | null;
+    startsAt: string | null;
+  } | null>(null);
+
 
   useEffect(() => {
     let active = true;
