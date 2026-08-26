@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Search, ChevronRight, ChevronLeft, FileDown, FileSpreadsheet } from 'lucide-react';
+import { Loader2, Search, ChevronRight, ChevronLeft, ChevronDown, FileDown, FileSpreadsheet } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format } from 'date-fns';
 import { formatPrice } from '@/lib/utils';
@@ -46,6 +46,7 @@ export function TransactionsDashboard() {
   const [totalSales, setTotalSales] = useState(0);
   const [totalProfit, setTotalProfit] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Stats from summary RPC
   const [statsData, setStatsData] = useState<any>(null);
@@ -301,9 +302,15 @@ export function TransactionsDashboard() {
                 const profit = calculateProfit(t.selling_price, t.cost_price || 0, t.evoucher_rate || 0);
                 const isPositiveProfit = profit > 0;
 
+                const isOpen = expandedId === t.id;
+
                 return (
-                  <div key={t.id} className="p-3 space-y-2">
-                    <div className="flex items-center justify-between gap-2">
+                  <div key={t.id}>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(isOpen ? null : t.id)}
+                      className="w-full flex items-center justify-between gap-2 p-3 text-left active:bg-muted/50"
+                    >
                       <div className="min-w-0">
                         <p className="font-mono text-[11px] text-muted-foreground truncate">
                           #{t.id.substring(0, 8).toUpperCase()} · {format(new Date(t.created_at), 'MMM dd, HH:mm')}
@@ -311,41 +318,47 @@ export function TransactionsDashboard() {
                         <p className="font-medium text-sm truncate mt-0.5">{t.package_name}</p>
                         <p className="text-xs text-muted-foreground truncate">{t.data_amount} · {t.provider_name}</p>
                       </div>
-                      <div className="shrink-0 flex flex-col items-end gap-1">
+                      <div className="shrink-0 flex items-center gap-1.5">
                         {getStatusBadge(t.delivery_status || t.status)}
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </div>
+                    </button>
+
+                    {isOpen && (
+                      <div className="px-3 pb-3 space-y-2">
+                        <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
+                          <span className="truncate">{(t.sender_phone || t.customer_phone || '').replace('+252', '')}</span>
+                          <ChevronRight className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{t.receiver_phone?.replace('+252', '') || '-'}</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1.5 text-center">
+                          <div className="rounded-md bg-blue-500/10 px-1 py-1.5">
+                            <p className="text-[9px] text-muted-foreground">Selling</p>
+                            <p className="text-xs font-bold text-blue-600">${Number(t.selling_price).toFixed(2)}</p>
+                          </div>
+                          <div className="rounded-md bg-muted px-1 py-1.5">
+                            <p className="text-[9px] text-muted-foreground">Cost</p>
+                            <p className="text-xs font-semibold">${Number(t.cost_price || 0).toFixed(2)}</p>
+                          </div>
+                          <div className={`rounded-md px-1 py-1.5 ${isPositiveProfit ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                            <p className="text-[9px] text-muted-foreground">Profit</p>
+                            <p className={`text-xs font-bold ${isPositiveProfit ? 'text-green-600' : 'text-red-600'}`}>
+                              {isPositiveProfit ? '+' : ''}${formatPrice(profit)}
+                            </p>
+                          </div>
+                        </div>
                         {t.delivery_status === 'timeout' && (
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-6 px-2 text-xs"
+                            className="h-7 w-full text-xs"
                             onClick={() => handleManualVerify(t.id)}
                           >
                             ✓ Xaqiiji
                           </Button>
                         )}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
-                      <span className="truncate">{(t.sender_phone || t.customer_phone || '').replace('+252', '')}</span>
-                      <ChevronRight className="h-3 w-3 shrink-0" />
-                      <span className="truncate">{t.receiver_phone?.replace('+252', '') || '-'}</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1.5 text-center">
-                      <div className="rounded-md bg-blue-500/10 px-1 py-1.5">
-                        <p className="text-[9px] text-muted-foreground">Selling</p>
-                        <p className="text-xs font-bold text-blue-600">${Number(t.selling_price).toFixed(2)}</p>
-                      </div>
-                      <div className="rounded-md bg-muted px-1 py-1.5">
-                        <p className="text-[9px] text-muted-foreground">Cost</p>
-                        <p className="text-xs font-semibold">${Number(t.cost_price || 0).toFixed(2)}</p>
-                      </div>
-                      <div className={`rounded-md px-1 py-1.5 ${isPositiveProfit ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                        <p className="text-[9px] text-muted-foreground">Profit</p>
-                        <p className={`text-xs font-bold ${isPositiveProfit ? 'text-green-600' : 'text-red-600'}`}>
-                          {isPositiveProfit ? '+' : ''}${formatPrice(profit)}
-                        </p>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
