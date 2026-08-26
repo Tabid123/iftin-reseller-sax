@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, LogOut, Shield, Building2, CreditCard, Radio } from "lucide-react";
+import { Loader2, LogOut, Shield, Building2, CreditCard, Radio, Smartphone } from "lucide-react";
 import iftinLogo from "@/assets/iftin-logo.jpg";
 
 const SuperAdminTenants = lazy(() => import("@/components/admin/SuperAdminTenants"));
 const SubscriptionsManager = lazy(() => import("@/components/admin/SubscriptionsManager"));
 const UssdFlowsManager = lazy(() => import("@/components/admin/UssdFlowsManager"));
+const SuperAdminApps = lazy(() => import("@/components/admin/SuperAdminApps"));
 
 const TabLoader = () => (
   <div className="flex justify-center items-center p-12">
@@ -103,6 +104,9 @@ export default function SuperAdminDashboard() {
                 <TabsTrigger value="flows">
                   <Radio className="h-4 w-4 mr-2" /> USSD Flows
                 </TabsTrigger>
+                <TabsTrigger value="apps">
+                  <Smartphone className="h-4 w-4 mr-2" /> Apps
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="tenants">
                 <Suspense fallback={<TabLoader />}>
@@ -121,6 +125,11 @@ export default function SuperAdminDashboard() {
                 </p>
                 <Suspense fallback={<TabLoader />}>
                   <UssdFlowsManager />
+                </Suspense>
+              </TabsContent>
+              <TabsContent value="apps">
+                <Suspense fallback={<TabLoader />}>
+                  <SuperAdminApps />
                 </Suspense>
               </TabsContent>
             </Tabs>
