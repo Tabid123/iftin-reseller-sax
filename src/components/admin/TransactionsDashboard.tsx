@@ -343,7 +343,7 @@ export function TransactionsDashboard() {
                           </div>
                           <div className="rounded-md bg-muted px-1 py-1.5">
                             <p className="text-[9px] text-muted-foreground">Cost</p>
-                            <p className="text-xs font-semibold">${Number(t.cost_price || 0).toFixed(2)}</p>
+                            <p className="text-xs font-semibold">${Number(getCost(t)).toFixed(2)}</p>
                           </div>
                           <div className={`rounded-md px-1 py-1.5 ${isPositiveProfit ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
                             <p className="text-[9px] text-muted-foreground">Profit</p>
@@ -388,7 +388,7 @@ export function TransactionsDashboard() {
                 </TableHeader>
                 <TableBody>
                   {transactions.map((t, index) => {
-                    const profit = calculateProfit(t.selling_price, t.cost_price || 0, t.evoucher_rate || 0);
+                    const profit = getProfit(t);
                     const isPositiveProfit = profit > 0;
 
                     return (
