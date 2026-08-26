@@ -4,6 +4,8 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { clearTenantSelection } from '@/lib/tenantSession';
+import TenantBlockedScreen from '@/components/reseller/TenantBlockedScreen';
+
 
 const MANAGER_ROLES = ['owner', 'admin', 'manager'];
 
