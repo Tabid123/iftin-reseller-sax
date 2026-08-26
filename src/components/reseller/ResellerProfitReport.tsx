@@ -320,51 +320,67 @@ export default function ResellerProfitReport() {
             ))}
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="justify-start truncate font-normal">
-                  <CalendarIcon className="mr-1 h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{format(dateFrom, 'MMM d')}</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto bg-background p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dateFrom}
-                  onSelect={(d) => { if (d) { setDateFrom(startOfDay(d)); setPeriod('custom'); } }}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="justify-start truncate font-normal">
-                  <CalendarIcon className="mr-1 h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{format(dateTo, 'MMM d')}</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto bg-background p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dateTo}
-                  onSelect={(d) => { if (d) { setDateTo(endOfDay(d)); setPeriod('custom'); } }}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-            <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-              <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent className="z-50 bg-background">
-                <SelectItem value="all">{so ? 'Dhammaan' : 'All'}</SelectItem>
-                {providers.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.provider_name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">
+                {so ? 'Laga bilaabo:' : 'From:'}
+              </span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full justify-start truncate font-normal sm:w-auto">
+                    <CalendarIcon className="mr-1 h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{format(dateFrom, 'MMM d, yyyy')}</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto bg-background p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateFrom}
+                    onSelect={(d) => { if (d) { setDateFrom(startOfDay(d)); setPeriod('custom'); } }}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">
+                {so ? 'Ilaa:' : 'To:'}
+              </span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full justify-start truncate font-normal sm:w-auto">
+                    <CalendarIcon className="mr-1 h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{format(dateTo, 'MMM d, yyyy')}</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto bg-background p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateTo}
+                    onSelect={(d) => { if (d) { setDateTo(endOfDay(d)); setPeriod('custom'); } }}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="col-span-2 flex min-w-0 items-center gap-1.5">
+              <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">
+                {so ? 'Shirkad:' : 'Provider:'}
+              </span>
+              <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                <SelectTrigger className="h-9 text-sm sm:w-[180px]"><SelectValue /></SelectTrigger>
+                <SelectContent className="z-50 bg-background">
+                  <SelectItem value="all">{so ? 'Dhammaan' : 'All'}</SelectItem>
+                  {providers.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.provider_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
 
           {loadingDays ? (
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
