@@ -120,6 +120,12 @@ const ResellerRoute = ({ children }: { children: React.ReactNode }) => {
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, [navigate]);
 
+  if (!checking && blocked) {
+    return (
+      <TenantBlockedScreen reason={blocked.reason} endedAt={blocked.endedAt} startsAt={blocked.startsAt} />
+    );
+  }
+
   if (checking || !allowed) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -127,6 +133,7 @@ const ResellerRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
+
 
   return <>{children}</>;
 };
