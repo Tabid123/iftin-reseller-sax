@@ -115,19 +115,8 @@ export function ResellerSidebar({ activeTab, onTabChange, onLogout }: Props) {
   const { tenant, logoUrl } = useTenant();
   const { language } = useLanguage();
   const so = language === 'so';
-  const { data: hasApps = false } = useQuery({
-    queryKey: ['manual-apks-available'],
-    queryFn: async () => {
-      const { data, error } = await supabase.storage.from('apps').list('', { limit: 100 });
-      if (error) return false;
-      return (data ?? []).filter((f) => f.name !== '.emptyFolderPlaceholder').length > 0;
-    },
-  });
+  const groups = RESELLER_GROUPS;
 
-  const groups = RESELLER_GROUPS.map((g) => ({
-    ...g,
-    items: g.items.filter((i) => (i.value === 'apps' ? hasApps : true)),
-  })).filter((g) => g.items.length > 0);
 
   const [open, setOpen] = useState<string[]>(
     RESELLER_GROUPS.filter((g) => g.items.some((i) => i.value === activeTab)).map((g) => g.label)
