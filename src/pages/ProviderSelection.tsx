@@ -132,26 +132,35 @@ const ProviderSelection = () => {
 
   // Prefetch categories + per-provider packages (preserved)
   const { data: providerRates = {} } = useQuery<Record<string, number>>({
-    queryKey: ['provider-top-rates', tenantId],
+    queryKey: ['provider-top-rates', tenantId, providers.map((p: any) => p.id).join(',')],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('customer_wholesale_tiers')
-        .select('provider_id, profit_rate')
-        .eq('tenant_id', tenantId)
-        .eq('is_active', true);
-      if (error) throw error;
       const map: Record<string, number> = {};
-      (data || []).forEach((t: any) => {
-        const cur = map[t.provider_id];
-        const val = Number(t.profit_rate) || 0;
-        if (cur === undefined || val > cur) map[t.provider_id] = val;
-      });
+      await Promise.all(
+        providers.map(async (p: any) => {
+          const { data, error } = await supabase.rpc('get_provider_wholesale_tiers', {
+            provider_uuid: p.id,
+            p_tenant_id: tenantId,
+          });
+          if (error) return;
+          const tiers = (data || []).filter((t: any) => t.is_active !== false);
+          if (!tiers.length) return;
+          // Tier-ka 1-aad (display_order ugu hooseeya, kadib min_amount)
+          const first = [...tiers].sort(
+            (a: any, b: any) =>
+              (a.display_order ?? 0) - (b.display_order ?? 0) ||
+              Number(a.min_amount) - Number(b.min_amount),
+          )[0];
+          const rate = Number(first.payout_rate ?? first.profit_rate) || 0;
+          if (rate > 0) map[p.id] = rate;
+        }),
+      );
       return map;
     },
     staleTime: 5 * 60 * 1000,
     retry: false,
-    enabled: !tenantLoading && !!tenantId,
+    enabled: !tenantLoading && !!tenantId && providers.length > 0,
   });
+
 
   useEffect(() => {
     if (!providers.length) return;
@@ -474,7 +483,7 @@ const ProviderSelection = () => {
                   </div>
                   {rate !== undefined && (
                     <div className="shrink-0 text-right">
-                      <p className="text-lg font-extrabold text-green-600 leading-none">{rate}%</p>
+                      <p className="text-lg font-extrabold text-green-600 leading-none">{Number(rate).toFixed(2).replace(/\.00$/, '')}%</p>
                       <p className="text-[11px] text-gray-400 mt-0.5">Rate</p>
                     </div>
                   )}
