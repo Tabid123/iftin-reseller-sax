@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Search, ChevronRight, ChevronLeft, FileDown, FileSpreadsheet } from 'lucide-react';
+import { Loader2, Search, ChevronRight, ChevronLeft, ChevronDown, FileDown, FileSpreadsheet } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format } from 'date-fns';
 import { formatPrice } from '@/lib/utils';
@@ -46,6 +46,7 @@ export function TransactionsDashboard() {
   const [totalSales, setTotalSales] = useState(0);
   const [totalProfit, setTotalProfit] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Stats from summary RPC
   const [statsData, setStatsData] = useState<any>(null);
