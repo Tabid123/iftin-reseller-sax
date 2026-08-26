@@ -95,15 +95,17 @@ export function TransactionsDashboard() {
   const loadTransactions = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase.rpc('get_admin_transactions_paginated', {
-      p_search: debouncedSearch,
+      p_search: debouncedSearch || null,
       p_status: statusFilter,
-      p_provider_id: providerFilter,
+      p_provider_id: providerFilter === 'all' ? null : providerFilter,
       p_period: periodFilter,
       p_limit: PAGE_SIZE,
       p_offset: currentPage * PAGE_SIZE,
     });
 
-    if (!error && data) {
+    if (error) {
+      console.error('Transactions load error:', error);
+    } else if (data) {
       const result = data as any;
       setTransactions(result.rows || []);
       setTotalCount(result.total_count || 0);
