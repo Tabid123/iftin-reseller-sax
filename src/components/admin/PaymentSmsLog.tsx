@@ -396,12 +396,12 @@ export function PaymentSmsLog() {
                     {language === 'so' ? 'Dhammaan SMS-yada lacagaha EVC Plus' : 'All EVC Plus payment SMS messages'}
                   </CardDescription>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={loadReceipts} disabled={loading}>
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={loadReceipts} disabled={loading}>
                     <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                     {language === 'so' ? 'Cusboonaysii' : 'Refresh'}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={exportToCSV} disabled={receipts.length === 0}>
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={exportToCSV} disabled={receipts.length === 0}>
                     <Download className="h-4 w-4 mr-2" />
                     CSV
                   </Button>
