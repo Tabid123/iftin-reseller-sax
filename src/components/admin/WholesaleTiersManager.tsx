@@ -141,14 +141,16 @@ export default function WholesaleTiersManager() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
-        <div>
-          <CardTitle>📊 Wholesale Tiers (Jumlo)</CardTitle>
-          <CardDescription>Maamul min, max, iyo profit rate-ka shirkad walba</CardDescription>
+      <CardHeader>
+        {/* Title + description stacked full-width */}
+        <div className="min-w-0">
+          <CardTitle className="text-base sm:text-lg">📊 Wholesale Tiers (Jumlo)</CardTitle>
+          <CardDescription className="truncate">Maamul min, max, iyo profit rate-ka shirkad walba</CardDescription>
         </div>
-        <div className="flex gap-2 items-center">
+        {/* Controls: stacked full-width on mobile, inline on desktop */}
+        <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
           <Select value={filterProvider} onValueChange={setFilterProvider}>
-            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Dhammaan Shirkadaha</SelectItem>
               {providers.map(p => <SelectItem key={p.id} value={p.id}>{p.provider_name}</SelectItem>)}
@@ -156,9 +158,9 @@ export default function WholesaleTiersManager() {
           </Select>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={openNew}><Plus className="w-4 h-4 mr-1" /> Tier Cusub</Button>
+              <Button onClick={openNew} className="w-full sm:w-auto"><Plus className="w-4 h-4 mr-1" /> Tier Cusub</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-[90vw]">
               <DialogHeader>
                 <DialogTitle>{editingId ? 'Edit Tier' : 'Tier Cusub'}</DialogTitle>
               </DialogHeader>
@@ -219,55 +221,115 @@ export default function WholesaleTiersManager() {
         ) : filteredTiers.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">Wax tier ah ma jiraan. Riix "Tier Cusub" si aad u abuurto.</div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Shirkad</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead>Min</TableHead>
-                <TableHead>Max</TableHead>
-                <TableHead>Rate %</TableHead>
-                <TableHead>Order</TableHead>
-                <TableHead>Active</TableHead>
-                <TableHead className="text-right">Falal</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            {/* Mobile: responsive cards */}
+            <div className="grid grid-cols-1 gap-2 sm:hidden">
               {filteredTiers.map(t => (
-                <TableRow key={t.id}>
-                  <TableCell>{providerName(t.provider_id)}</TableCell>
-                  <TableCell>{t.tier_name}</TableCell>
-                  <TableCell>${Number(t.min_amount).toFixed(2)}</TableCell>
-                  <TableCell>${Number(t.max_amount).toFixed(2)}</TableCell>
-                  <TableCell>{Number(t.profit_rate).toFixed(2)}%</TableCell>
-                  <TableCell>{t.display_order}</TableCell>
-                  <TableCell>
-                    <Switch checked={t.is_active} onCheckedChange={() => toggleActive(t)} />
-                  </TableCell>
-                  <TableCell className="text-right space-x-1">
-                    <Button size="sm" variant="outline" onClick={() => openEdit(t)}>
-                      <Pencil className="w-3 h-3" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="destructive"><Trash2 className="w-3 h-3" /></Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Tirtir tier-kan?</AlertDialogTitle>
-                          <AlertDialogDescription>Tani lama soo celin karo.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Maya</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => remove(t.id)}>Haa, tirtir</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
-                </TableRow>
+                <div key={t.id} className="rounded-xl border bg-card p-3 shadow-sm">
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold">{providerName(t.provider_id)}</div>
+                      <div className="text-xs text-muted-foreground">{t.tier_name} · #{t.display_order}</div>
+                    </div>
+                    <Badge variant={t.is_active ? 'default' : 'secondary'} className="shrink-0">
+                      {t.is_active ? 'Active' : 'Off'}
+                    </Badge>
+                  </div>
+                  <div className="mt-2 grid grid-cols-3 gap-1 text-center text-xs">
+                    <div className="rounded-md bg-muted/50 py-1">
+                      <div className="text-[10px] text-muted-foreground">Min</div>
+                      <div className="font-semibold tabular-nums">${Number(t.min_amount).toFixed(2)}</div>
+                    </div>
+                    <div className="rounded-md bg-muted/50 py-1">
+                      <div className="text-[10px] text-muted-foreground">Max</div>
+                      <div className="font-semibold tabular-nums">${Number(t.max_amount).toFixed(2)}</div>
+                    </div>
+                    <div className="rounded-md bg-primary/10 py-1">
+                      <div className="text-[10px] text-muted-foreground">Rate</div>
+                      <div className="font-bold tabular-nums text-primary">{Number(t.profit_rate).toFixed(2)}%</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <Switch checked={t.is_active} onCheckedChange={() => toggleActive(t)} />
+                      <span className="text-[11px] text-muted-foreground">Active</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="outline" onClick={() => openEdit(t)}><Pencil className="w-3 h-3" /></Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="destructive"><Trash2 className="w-3 h-3" /></Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="max-w-[90vw]">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Tirtir tier-kan?</AlertDialogTitle>
+                            <AlertDialogDescription>Tani lama soo celin karo.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Maya</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => remove(t.id)}>Haa, tirtir</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </TableBody>
-          </Table>
+            </div>
+
+            {/* Desktop: table */}
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Shirkad</TableHead>
+                    <TableHead>Tier</TableHead>
+                    <TableHead>Min</TableHead>
+                    <TableHead>Max</TableHead>
+                    <TableHead>Rate %</TableHead>
+                    <TableHead>Order</TableHead>
+                    <TableHead>Active</TableHead>
+                    <TableHead className="text-right">Falal</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTiers.map(t => (
+                    <TableRow key={t.id}>
+                      <TableCell>{providerName(t.provider_id)}</TableCell>
+                      <TableCell>{t.tier_name}</TableCell>
+                      <TableCell>${Number(t.min_amount).toFixed(2)}</TableCell>
+                      <TableCell>${Number(t.max_amount).toFixed(2)}</TableCell>
+                      <TableCell>{Number(t.profit_rate).toFixed(2)}%</TableCell>
+                      <TableCell>{t.display_order}</TableCell>
+                      <TableCell>
+                        <Switch checked={t.is_active} onCheckedChange={() => toggleActive(t)} />
+                      </TableCell>
+                      <TableCell className="text-right space-x-1">
+                        <Button size="sm" variant="outline" onClick={() => openEdit(t)}>
+                          <Pencil className="w-3 h-3" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive"><Trash2 className="w-3 h-3" /></Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Tirtir tier-kan?</AlertDialogTitle>
+                              <AlertDialogDescription>Tani lama soo celin karo.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Maya</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => remove(t.id)}>Haa, tirtir</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
