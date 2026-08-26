@@ -179,13 +179,13 @@ export default function ResellerDeviceBalances() {
             const online = d.lastPing && Date.now() - new Date(d.lastPing).getTime() < 3 * 60 * 1000;
             return (
               <div key={d.id} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-                <div className="flex items-start gap-3 bg-gradient-to-r from-sky-50 to-indigo-50 px-3 py-3 dark:from-sky-950/40 dark:to-indigo-950/40">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                    <Smartphone className="h-5 w-5" />
+                <div className="flex items-start gap-2 bg-gradient-to-r from-sky-50 to-indigo-50 px-2 py-2 dark:from-sky-950/40 dark:to-indigo-950/40 sm:gap-3 sm:px-3 sm:py-3">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary sm:h-9 sm:w-9">
+                    <Smartphone className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-bold">{d.name}</p>
+                    <div className="flex flex-wrap items-center gap-x-2">
+                      <p className="truncate text-xs font-bold sm:text-sm">{d.name}</p>
                       <span
                         className={cn(
                           'flex items-center gap-1 text-[10px] font-semibold',
