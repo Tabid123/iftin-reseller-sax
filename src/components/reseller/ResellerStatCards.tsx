@@ -131,12 +131,12 @@ export function ResellerStatCards({ onNavigate }: Props) {
       tab: 'sms-payments',
     },
     {
-      value: String(smsLogs),
-      title: so ? 'SMS Lacago' : 'SMS Payments',
-      sub: so ? 'Dhammaan lacagaha SMS' : 'All SMS receipts',
+      value: String(data.total.orders),
+      title: so ? 'Dalabyada' : 'Orders',
+      sub: so ? 'Dhammaan dalabyada' : 'All orders',
       gradient: 'from-pink-500 to-fuchsia-600',
       footer: 'from-pink-700 to-fuchsia-800',
-      tab: 'sms-payments',
+      tab: 'transactions-dashboard',
     },
     {
       value: String(devicesOnline),
