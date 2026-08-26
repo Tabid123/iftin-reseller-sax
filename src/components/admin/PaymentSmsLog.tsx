@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -396,12 +396,12 @@ export function PaymentSmsLog() {
                     {language === 'so' ? 'Dhammaan SMS-yada lacagaha EVC Plus' : 'All EVC Plus payment SMS messages'}
                   </CardDescription>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={loadReceipts} disabled={loading}>
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={loadReceipts} disabled={loading}>
                     <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                     {language === 'so' ? 'Cusboonaysii' : 'Refresh'}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={exportToCSV} disabled={receipts.length === 0}>
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={exportToCSV} disabled={receipts.length === 0}>
                     <Download className="h-4 w-4 mr-2" />
                     CSV
                   </Button>
@@ -495,75 +495,73 @@ export function PaymentSmsLog() {
             <p>{language === 'so' ? 'SMS ma jiro' : 'No SMS messages found'}</p>
           </div>
         ) : (
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="whitespace-nowrap">{language === 'so' ? 'Waqti' : 'Time'}</TableHead>
-                  <TableHead className="whitespace-nowrap">{language === 'so' ? 'Soo Diray' : 'From'}</TableHead>
-                  <TableHead className="whitespace-nowrap">{language === 'so' ? 'Lacag' : 'Amount'}</TableHead>
-                  <TableHead className="whitespace-nowrap">{language === 'so' ? 'Shirkad' : 'Provider'}</TableHead>
-                  <TableHead className="whitespace-nowrap">{language === 'so' ? 'Xirmo' : 'Package'}</TableHead>
-                  <TableHead className="whitespace-nowrap">Data</TableHead>
-                  <TableHead className="whitespace-nowrap">SMS Body</TableHead>
-                  <TableHead className="whitespace-nowrap">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {receipts.map((receipt) => (
-                  <TableRow 
-                    key={receipt.id} 
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleRowClick(receipt)}
-                  >
-                    <TableCell className="whitespace-nowrap text-sm">
-                      {receipt.created_at 
-                        ? format(new Date(receipt.created_at), 'HH:mm')
-                        : '-'}
-                      <span className="block text-xs text-muted-foreground">
-                        {receipt.created_at 
-                          ? format(new Date(receipt.created_at), 'dd/MM')
-                          : ''}
-                      </span>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">{receipt.sender_phone}</TableCell>
-                    <TableCell className="font-semibold">${receipt.amount.toFixed(2)}</TableCell>
-                    <TableCell>
-                      {receipt.order?.provider ? (
-                        <div className="flex items-center gap-2">
-                          {receipt.order.provider.provider_logo && (
-                            <img 
-                              src={receipt.order.provider.provider_logo} 
-                              alt="" 
-                              className="h-4 w-4 object-contain"
-                            />
-                          )}
-                          <span className="text-sm">{receipt.order.provider.provider_name}</span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {receipts.map((receipt) => (
+              <div
+                key={receipt.id}
+                className="cursor-pointer rounded-lg border bg-card p-3 text-card-foreground shadow-sm transition-colors hover:bg-muted/50 active:bg-muted"
+                onClick={() => handleRowClick(receipt)}
+              >
+                {/* Header: time + status */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-sm font-medium">
+                    {receipt.created_at
+                      ? format(new Date(receipt.created_at), 'HH:mm')
+                      : '-'}
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      {receipt.created_at
+                        ? format(new Date(receipt.created_at), 'dd/MM')
+                        : ''}
+                    </span>
+                  </div>
+                  {getStatusBadge(receipt.status)}
+                </div>
+
+                {/* From + Amount */}
+                <div className="mt-2 flex items-end justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">{language === 'so' ? 'Soo Diray' : 'From'}</p>
+                    <p className="truncate font-mono text-sm font-medium">{receipt.sender_phone}</p>
+                  </div>
+                  <p className="shrink-0 font-semibold tabular-nums">${receipt.amount.toFixed(2)}</p>
+                </div>
+
+                {/* Provider + Package */}
+                <div className="mt-2 grid grid-cols-2 gap-2 border-t pt-2">
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">{language === 'so' ? 'Shirkad' : 'Provider'}</p>
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      {receipt.order?.provider?.provider_logo && (
+                        <img
+                          src={receipt.order.provider.provider_logo}
+                          alt=""
+                          className="h-4 w-4 shrink-0 object-contain"
+                        />
                       )}
-                    </TableCell>
-                    <TableCell className="max-w-[120px] truncate text-sm">
-                      {receipt.order?.package_name || '-'}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {receipt.order?.data_amount || '-'}
-                    </TableCell>
-                    <TableCell className="max-w-[150px]">
-                      {receipt.sms_body ? (
-                        <span className="text-xs text-muted-foreground truncate block" title={receipt.sms_body}>
-                          {receipt.sms_body.slice(0, 40)}...
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(receipt.status)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      <span className="truncate text-sm">{receipt.order?.provider?.provider_name || '-'}</span>
+                    </div>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">{language === 'so' ? 'Xirmo' : 'Package'}</p>
+                    <p className="truncate text-sm">{receipt.order?.package_name || '-'}</p>
+                  </div>
+                </div>
+
+                {/* Data + SMS body */}
+                <div className="mt-2 grid grid-cols-2 gap-2 border-t pt-2">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Data</p>
+                    <p className="text-sm">{receipt.order?.data_amount || '-'}</p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">SMS</p>
+                    <p className="truncate text-xs text-muted-foreground" title={receipt.sms_body || ''}>
+                      {receipt.sms_body ? `${receipt.sms_body.slice(0, 40)}…` : '-'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
               </CardContent>
