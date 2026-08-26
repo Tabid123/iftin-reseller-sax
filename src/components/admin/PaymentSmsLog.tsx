@@ -461,8 +461,8 @@ export function PaymentSmsLog() {
         </div>
 
         {/* Stats Summary */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div className="bg-muted/50 rounded-lg p-3 text-center">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <div className="col-span-2 rounded-lg bg-muted/50 p-3 text-center sm:col-span-1">
             <p className="text-2xl font-bold">{receipts.length}</p>
             <p className="text-xs text-muted-foreground">{language === 'so' ? 'Wadarta' : 'Total'}</p>
           </div>
