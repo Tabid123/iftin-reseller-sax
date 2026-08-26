@@ -2987,17 +2987,17 @@ export type Database = {
       }
       get_admin_transactions_paginated: {
         Args: {
-          p_limit?: number
-          p_offset?: number
-          p_period?: string
-          p_provider_id?: string
-          p_search?: string
-          p_status?: string
+          p_limit: number
+          p_offset: number
+          p_period: string
+          p_provider_id: string
+          p_search: string
+          p_status: string
         }
         Returns: Json
       }
       get_admin_transactions_summary: {
-        Args: { p_period?: string; p_provider_id?: string }
+        Args: { p_period: string; p_provider_id: string }
         Returns: Json
       }
       get_delivery_session: { Args: never; Returns: Json }
@@ -3082,8 +3082,8 @@ export type Database = {
       get_profit_report: {
         Args: {
           p_end: string
-          p_group_by?: string
-          p_provider_id?: string
+          p_group_by: string
+          p_provider_id: string
           p_start: string
         }
         Returns: Json[]
@@ -3182,6 +3182,7 @@ export type Database = {
         }
         Returns: Json
       }
+      report_tenant_id: { Args: never; Returns: string }
       resolve_public_tenant: { Args: { p_tenant_id?: string }; Returns: string }
       resolve_unmatched_dialog: {
         Args: { _id: string; _step_id: string }
