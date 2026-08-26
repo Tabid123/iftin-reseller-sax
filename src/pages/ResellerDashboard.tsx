@@ -22,6 +22,7 @@ const ResellerBanners = lazy(() => import('@/components/reseller/ResellerBanners
 const ResellerProviders = lazy(() => import('@/components/reseller/ResellerProviders'));
 const ResellerApps = lazy(() => import('@/components/reseller/ResellerApps'));
 const ResellerDeviceBalances = lazy(() => import('@/components/reseller/ResellerDeviceBalances'));
+const ResellerProfitCalculator = lazy(() => import('@/components/reseller/ResellerProfitCalculator'));
 
 
 const TabLoader = () => (
