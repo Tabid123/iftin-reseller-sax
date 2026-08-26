@@ -236,6 +236,7 @@ export default function ResellerDeviceBalances() {
                 <div className="space-y-2 p-2 sm:space-y-3 sm:p-3">
                   {d.sims.map((sim) => {
                     const st = styleFor(sim.provider);
+                    const logo = logoFor(sim.provider);
                     return (
                       <div
                         key={`${d.id}-${sim.slot}`}
