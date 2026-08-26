@@ -385,7 +385,7 @@ export const DailyOrdersManager = () => {
       ) : filteredOrders.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
-            {language === 'so' ? 'Dalabyo la helin maalintaan' : 'No orders found for this day'}
+            {language === 'so' ? 'Wax dalab ah lama helin' : 'No orders found'}
           </CardContent>
         </Card>
       ) : (
