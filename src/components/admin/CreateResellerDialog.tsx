@@ -18,6 +18,14 @@ interface Props {
 const slugify = (v: string) =>
   v.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
+/** yyyy-MM-ddTHH:mm in local time, for <input type="datetime-local"> */
+const toLocalInput = (d: Date) => {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+const defaultStart = () => toLocalInput(new Date());
+const defaultEnd = () => toLocalInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+
 export default function CreateResellerDialog({ open, onOpenChange, onCreated }: Props) {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -28,13 +36,17 @@ export default function CreateResellerDialog({ open, onOpenChange, onCreated }: 
   const [providers, setProviders] = useState<string[]>([]);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [trialStart, setTrialStart] = useState(defaultStart);
+  const [trialEnd, setTrialEnd] = useState(defaultEnd);
   const [busy, setBusy] = useState(false);
 
   const reset = () => {
     setName(""); setSlug(""); setEmail(""); setPassword("");
     setPrimary("#0f172a"); setSecondary("#ffffff"); setProviders([]);
     setLogoFile(null); setLogoPreview(null);
+    setTrialStart(defaultStart()); setTrialEnd(defaultEnd());
   };
+
 
   const submit = async () => {
     if (!name.trim() || !slug.trim() || !email.trim() || password.length < 6) {
