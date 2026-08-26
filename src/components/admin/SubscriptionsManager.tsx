@@ -230,6 +230,11 @@ export default function SubscriptionsManager() {
                       <DollarSign className="h-3 w-3" /> Bixiyay: ${Number(r.total_paid ?? 0).toFixed(0)}
                     </span>
                     <span>Qorshaha: {r.plan ?? "trial"}</span>
+                    <span className="flex items-center gap-1">
+                      <CalendarClock className="h-3 w-3" /> Trial: {fmt(r.trial_starts_at ?? null)} →{" "}
+                      {fmt(r.trial_ends_at)}
+                    </span>
+
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
