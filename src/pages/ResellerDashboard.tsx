@@ -8,6 +8,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { clearTenantSelection } from '@/lib/tenantSession';
 import { ResellerSidebar, RESELLER_GROUPS } from '@/components/reseller/ResellerSidebar';
+import { useIsSuperAdmin } from '@/hooks/useIsSuperAdmin';
+
 import ResellerSimPins from '@/components/reseller/ResellerSimPins';
 import { ResellerStatCards } from '@/components/reseller/ResellerStatCards';
 
