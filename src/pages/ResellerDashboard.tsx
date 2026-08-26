@@ -8,6 +8,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { clearTenantSelection } from '@/lib/tenantSession';
 import { ResellerSidebar, RESELLER_GROUPS } from '@/components/reseller/ResellerSidebar';
+import { useIsSuperAdmin } from '@/hooks/useIsSuperAdmin';
+
 import ResellerSimPins from '@/components/reseller/ResellerSimPins';
 import { ResellerStatCards } from '@/components/reseller/ResellerStatCards';
 
@@ -64,7 +66,9 @@ export default function ResellerDashboard() {
   const { language } = useLanguage();
   const so = language === 'so';
   const { tenant, logoUrl, loading: tenantLoading } = useTenant();
+  const isSuperAdmin = useIsSuperAdmin();
   const [activeTab, setActiveTab] = useState('dashboard');
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [checking, setChecking] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -168,7 +172,18 @@ export default function ResellerDashboard() {
             {activeTab === 'sim-pins' && <ResellerSimPins />}
             {activeTab === 'send-notification' && <SendNotification />}
             {activeTab === 'banners' && <ResellerBanners />}
-            {activeTab === 'apps' && <ResellerApps />}
+            {activeTab === 'apps' && (
+              isSuperAdmin === true ? (
+                <ResellerApps />
+              ) : isSuperAdmin === null ? (
+                <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin" /></div>
+              ) : (
+                <p className="py-10 text-center text-muted-foreground">
+                  {so ? 'Ma lihid fasax. Kani waa super admin keliya.' : 'Access denied. Super admin only.'}
+                </p>
+              )
+            )}
+
 
           </Suspense>
         </main>

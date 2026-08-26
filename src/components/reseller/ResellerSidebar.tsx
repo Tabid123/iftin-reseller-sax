@@ -24,13 +24,17 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
 import ThemeToggle from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
+import { useIsSuperAdmin } from '@/hooks/useIsSuperAdmin';
+
 
 export interface ResellerNavItem {
   value: string;
   title: string;
   titleSo: string;
   icon: any;
+  superAdminOnly?: boolean;
 }
+
 
 export interface ResellerNavGroup {
   label: string;
@@ -92,7 +96,7 @@ export const RESELLER_GROUPS: ResellerNavGroup[] = [
     icon: Settings,
     items: [
       { value: 'payment', title: 'Payment Providers', titleSo: 'Payment', icon: CreditCard },
-      { value: 'apps', title: 'Apps', titleSo: 'Apps', icon: Smartphone },
+      { value: 'apps', title: 'Apps', titleSo: 'Apps', icon: Smartphone, superAdminOnly: true },
     ],
 
   },
@@ -113,9 +117,14 @@ export function ResellerSidebar({ activeTab, onTabChange, onLogout }: Props) {
   const { tenant, logoUrl } = useTenant();
   const { language } = useLanguage();
   const so = language === 'so';
+  const isSuperAdmin = useIsSuperAdmin();
+  const visibleGroups = RESELLER_GROUPS
+    .map((g) => ({ ...g, items: g.items.filter((i) => !i.superAdminOnly || isSuperAdmin === true) }))
+    .filter((g) => g.items.length > 0);
   const [open, setOpen] = useState<string[]>(
     RESELLER_GROUPS.filter((g) => g.items.some((i) => i.value === activeTab)).map((g) => g.label)
   );
+
 
   const toggle = (label: string) =>
     setOpen((prev) => (prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]));
@@ -153,9 +162,10 @@ export function ResellerSidebar({ activeTab, onTabChange, onLogout }: Props) {
           Dashboard
         </button>
 
-        {RESELLER_GROUPS.map((group) => {
+        {visibleGroups.map((group) => {
           const Icon = group.icon;
           const isOpen = open.includes(group.label);
+
           return (
             <div key={group.label}>
               <button
