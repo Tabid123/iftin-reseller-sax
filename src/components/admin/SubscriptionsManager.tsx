@@ -307,6 +307,46 @@ export default function SubscriptionsManager() {
 
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!trialFor} onOpenChange={(o) => !o && setTrialFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Beddel muddada tijaabada — {trialFor?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium">Bilaabmaya</label>
+              <Input type="datetime-local" value={trialStart} onChange={(e) => setTrialStart(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Dhammaanaya</label>
+              <Input type="datetime-local" value={trialEnd} onChange={(e) => setTrialEnd(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Maalmaha grace-ka</label>
+              <Input
+                type="number"
+                min={0}
+                value={graceDays}
+                onChange={(e) => setGraceDays(e.target.value)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Marka muddadu dhammaato waxaa bilaabmaya grace-ka, kadibna reseller-ka waxaa la tusayaa shaashadda
+              xiritaanka.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTrialFor(null)}>
+              Jooji
+            </Button>
+            <Button onClick={submitTrial} disabled={savingTrial}>
+              {savingTrial ? "Waa la kaydinayaa..." : "Kaydi"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
