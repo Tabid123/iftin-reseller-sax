@@ -9,7 +9,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { RefreshCw, CreditCard, DollarSign, Clock, AlertTriangle } from "lucide-react";
+import { RefreshCw, CreditCard, DollarSign, Clock, AlertTriangle, CalendarClock } from "lucide-react";
 
 interface SubRow {
   tenant_id: string;
