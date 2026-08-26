@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { Loader2, Smartphone, Signal, Battery, Wallet } from 'lucide-react';
+import amtelLogo from '@/assets/providers/amtel-logo.png';
 import { formatDistanceToNow } from 'date-fns';
 
 interface SimView {
