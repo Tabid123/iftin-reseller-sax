@@ -460,26 +460,26 @@ export function PaymentSmsLog() {
               </div>
 
               {/* Stats Summary: 1 card per row */}
-              <div className="grid grid-cols-1 gap-1.5">
-                <div className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-1.5">
-                  <p className="text-xs text-muted-foreground">{language === 'so' ? 'Wadarta' : 'Total'}</p>
-                  <p className="text-sm font-bold">{receipts.length}</p>
+              <div className="grid grid-cols-5 gap-1.5">
+                <div className="flex flex-col items-center justify-center rounded-md bg-muted/50 px-1 py-1.5">
+                  <p className="text-sm font-bold leading-tight">{receipts.length}</p>
+                  <p className="text-[10px] leading-tight text-muted-foreground">{language === 'so' ? 'Wadarta' : 'Total'}</p>
                 </div>
-                <div className="flex items-center justify-between rounded-md bg-green-500/10 px-3 py-1.5">
-                  <p className="text-xs text-muted-foreground">Matched</p>
-                  <p className="text-sm font-bold text-green-600">{receipts.filter(r => r.status === 'matched').length}</p>
+                <div className="flex flex-col items-center justify-center rounded-md bg-green-500/10 px-1 py-1.5">
+                  <p className="text-sm font-bold leading-tight text-green-600">{receipts.filter(r => r.status === 'matched').length}</p>
+                  <p className="text-[10px] leading-tight text-muted-foreground">Matched</p>
                 </div>
-                <div className="flex items-center justify-between rounded-md bg-yellow-500/10 px-3 py-1.5">
-                  <p className="text-xs text-muted-foreground">Pending</p>
-                  <p className="text-sm font-bold text-yellow-600">{receipts.filter(r => r.status === 'pending').length}</p>
+                <div className="flex flex-col items-center justify-center rounded-md bg-yellow-500/10 px-1 py-1.5">
+                  <p className="text-sm font-bold leading-tight text-yellow-600">{receipts.filter(r => r.status === 'pending').length}</p>
+                  <p className="text-[10px] leading-tight text-muted-foreground">Pending</p>
                 </div>
-                <div className="flex items-center justify-between rounded-md bg-red-500/10 px-3 py-1.5">
-                  <p className="text-xs text-muted-foreground">Unmatched</p>
-                  <p className="text-sm font-bold text-red-600">{receipts.filter(r => r.status === 'unmatched').length}</p>
+                <div className="flex flex-col items-center justify-center rounded-md bg-red-500/10 px-1 py-1.5">
+                  <p className="text-sm font-bold leading-tight text-red-600">{receipts.filter(r => r.status === 'unmatched').length}</p>
+                  <p className="text-[10px] leading-tight text-muted-foreground">Unmatched</p>
                 </div>
-                <div className="flex items-center justify-between rounded-md bg-orange-500/10 px-3 py-1.5">
-                  <p className="text-xs text-muted-foreground">Blocked</p>
-                  <p className="text-sm font-bold text-orange-600">{receipts.filter(r => r.status === 'blocked').length}</p>
+                <div className="flex flex-col items-center justify-center rounded-md bg-orange-500/10 px-1 py-1.5">
+                  <p className="text-sm font-bold leading-tight text-orange-600">{receipts.filter(r => r.status === 'blocked').length}</p>
+                  <p className="text-[10px] leading-tight text-muted-foreground">Blocked</p>
                 </div>
               </div>
 
