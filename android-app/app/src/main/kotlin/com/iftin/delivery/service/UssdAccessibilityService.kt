@@ -409,6 +409,7 @@ class UssdAccessibilityService : AccessibilityService() {
         completedFlowSteps.clear()
         lastSettledDialogKey = ""
         pendingSettleDialogKey = ""
+        stallRecoveries = 0
         getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
             .remove(KEY_COMPLETED_FLOW_STEPS)
             .remove(KEY_FLOW_STATE_SESSION)
