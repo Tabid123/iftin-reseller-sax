@@ -248,7 +248,16 @@ export default function ResellerDeviceBalances() {
                             st.head
                           )}
                         >
-                          <Signal className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                          {logo ? (
+                            <img
+                              src={logo}
+                              alt={`${sim.provider} logo`}
+                              className="h-5 w-5 shrink-0 rounded-md bg-background object-contain p-0.5 sm:h-6 sm:w-6"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <Signal className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                          )}
                           <span className="truncate text-[11px] font-semibold sm:text-sm">
                             SIM{sim.slot}: {sim.provider}
                           </span>
