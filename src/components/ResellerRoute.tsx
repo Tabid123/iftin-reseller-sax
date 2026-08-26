@@ -4,6 +4,8 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { clearTenantSelection } from '@/lib/tenantSession';
+import TenantBlockedScreen from '@/components/reseller/TenantBlockedScreen';
+
 
 const MANAGER_ROLES = ['owner', 'admin', 'manager'];
 
@@ -15,6 +17,12 @@ const ResellerRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const [allowed, setAllowed] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [blocked, setBlocked] = useState<{
+    reason: 'expired' | 'scheduled';
+    endedAt: string | null;
+    startsAt: string | null;
+  } | null>(null);
+
 
   useEffect(() => {
     let active = true;
@@ -62,17 +70,35 @@ const ResellerRoute = ({ children }: { children: React.ReactNode }) => {
       }
 
       const manager = (membership ?? []).find((m: any) =>
-        MANAGER_ROLES.includes(String(m.member_role ?? m.role ?? '').toLowerCase()) &&
-        (m.tenants?.status ?? 'active') !== 'suspended'
+        MANAGER_ROLES.includes(String(m.member_role ?? m.role ?? '').toLowerCase())
       );
 
       if (manager?.tenant_id) {
         localStorage.setItem('active_tenant_id', manager.tenant_id);
         localStorage.removeItem('public_tenant_slug');
-        setAllowed(true);
+
+        const suspendedTenant = (manager.tenants?.status ?? 'active') === 'suspended';
+        const { data: subData } = await supabase.rpc('get_tenant_subscription', {
+          _tenant: manager.tenant_id,
+        });
+        if (!active) return;
+        const sub = (subData ?? {}) as {
+          state?: string;
+          current_period_end?: string | null;
+          trial_starts_at?: string | null;
+        };
+
+        if (sub.state === 'scheduled') {
+          setBlocked({ reason: 'scheduled', startsAt: sub.trial_starts_at ?? null, endedAt: null });
+        } else if (suspendedTenant || sub.state === 'expired') {
+          setBlocked({ reason: 'expired', endedAt: sub.current_period_end ?? null, startsAt: null });
+        } else {
+          setAllowed(true);
+        }
         setChecking(false);
         return;
       }
+
 
       toast({
         title: 'Ma lihid fasax',
@@ -96,6 +122,12 @@ const ResellerRoute = ({ children }: { children: React.ReactNode }) => {
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, [navigate]);
 
+  if (!checking && blocked) {
+    return (
+      <TenantBlockedScreen reason={blocked.reason} endedAt={blocked.endedAt} startsAt={blocked.startsAt} />
+    );
+  }
+
   if (checking || !allowed) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -103,6 +135,7 @@ const ResellerRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
+
 
   return <>{children}</>;
 };

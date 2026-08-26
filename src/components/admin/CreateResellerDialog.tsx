@@ -18,6 +18,14 @@ interface Props {
 const slugify = (v: string) =>
   v.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
+/** yyyy-MM-ddTHH:mm in local time, for <input type="datetime-local"> */
+const toLocalInput = (d: Date) => {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+const defaultStart = () => toLocalInput(new Date());
+const defaultEnd = () => toLocalInput(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+
 export default function CreateResellerDialog({ open, onOpenChange, onCreated }: Props) {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -28,17 +36,25 @@ export default function CreateResellerDialog({ open, onOpenChange, onCreated }: 
   const [providers, setProviders] = useState<string[]>([]);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [trialStart, setTrialStart] = useState(defaultStart);
+  const [trialEnd, setTrialEnd] = useState(defaultEnd);
   const [busy, setBusy] = useState(false);
 
   const reset = () => {
     setName(""); setSlug(""); setEmail(""); setPassword("");
     setPrimary("#0f172a"); setSecondary("#ffffff"); setProviders([]);
     setLogoFile(null); setLogoPreview(null);
+    setTrialStart(defaultStart()); setTrialEnd(defaultEnd());
   };
+
 
   const submit = async () => {
     if (!name.trim() || !slug.trim() || !email.trim() || password.length < 6) {
       toast.error("Buuxi magaca, slug, email iyo password (6+)");
+      return;
+    }
+    if (!trialStart || !trialEnd || new Date(trialEnd) <= new Date(trialStart)) {
+      toast.error("Taariikhda dhammaadka trial-ka waa inay ka danbeysaa tan bilowga");
       return;
     }
     setBusy(true);
@@ -57,6 +73,20 @@ export default function CreateResellerDialog({ open, onOpenChange, onCreated }: 
       if (error || data?.error) throw new Error(data?.error || error?.message || "Lama abuurin");
 
       const tenantId = data.tenant?.id as string;
+
+      if (tenantId) {
+        const { data: trialRes, error: trialErr } = await supabase.rpc("set_tenant_trial", {
+          _tenant: tenantId,
+          _starts_at: new Date(trialStart).toISOString(),
+          _ends_at: new Date(trialEnd).toISOString(),
+          _grace_days: 3,
+        } as any);
+        const tr = (trialRes ?? {}) as { ok?: boolean; error?: string };
+        if (trialErr || !tr.ok) {
+          toast.error(`Trial-ka lama dejin: ${tr.error || trialErr?.message || "khalad"}`);
+        }
+      }
+
 
       if (logoFile && tenantId) {
         const ext = (logoFile.name.split(".").pop() || "png").toLowerCase();
@@ -160,6 +190,37 @@ export default function CreateResellerDialog({ open, onOpenChange, onCreated }: 
               </div>
             </div>
           </div>
+
+          <Separator />
+
+          <div className="space-y-2">
+            <Label>Muddada tijaabada (trial)</Label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Bilaabmaya</p>
+                <Input
+                  type="datetime-local"
+                  value={trialStart}
+                  onChange={(e) => setTrialStart(e.target.value)}
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Dhammaanaya</p>
+                <Input
+                  type="datetime-local"
+                  value={trialEnd}
+                  onChange={(e) => setTrialEnd(e.target.value)}
+                  className="h-10"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Marka muddadu dhammaato waxaa bilaabmaya 3 maalmood oo grace ah, kadibna xisaabta si toos ah ayaa
+              loo xirayaa.
+            </p>
+          </div>
+
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">

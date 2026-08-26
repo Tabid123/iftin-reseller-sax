@@ -2290,6 +2290,7 @@ export type Database = {
           status: string
           tenant_id: string
           trial_ends_at: string | null
+          trial_starts_at: string | null
           updated_at: string
         }
         Insert: {
@@ -2305,6 +2306,7 @@ export type Database = {
           status?: string
           tenant_id: string
           trial_ends_at?: string | null
+          trial_starts_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -2320,6 +2322,7 @@ export type Database = {
           status?: string
           tenant_id?: string
           trial_ends_at?: string | null
+          trial_starts_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -3187,6 +3190,15 @@ export type Database = {
       resolve_unmatched_dialog: {
         Args: { _id: string; _step_id: string }
         Returns: undefined
+      }
+      set_tenant_trial: {
+        Args: {
+          _ends_at: string
+          _grace_days?: number
+          _starts_at: string
+          _tenant: string
+        }
+        Returns: Json
       }
     }
     Enums: {
