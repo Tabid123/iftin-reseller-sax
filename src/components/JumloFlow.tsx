@@ -71,7 +71,7 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
       if (error) throw error;
       return (data as any) || [];
     },
-    enabled: !!providerId,
+    enabled: !!providerId && !!tenantId,
     staleTime: 60_000,
   });
 
