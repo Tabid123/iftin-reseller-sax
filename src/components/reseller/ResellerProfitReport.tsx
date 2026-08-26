@@ -184,11 +184,12 @@ export default function ResellerProfitReport() {
   );
 
   const ProfitCell = ({ row }: { row: ReportRow | typeof providerTotals }) => (
-    <td className="px-2 py-3 text-right">
+    <td className="px-3 py-3 text-right">
       <Amount value={row.profit} tone="profit" />
       <div className="text-[10px] text-muted-foreground">≈ {money(row.profit_ev)} EV</div>
     </td>
   );
+
 
   return (
     <div className="space-y-6">
@@ -249,41 +250,43 @@ export default function ResellerProfitReport() {
                 </div>
               </div>
               {/* Desktop */}
-              <div className="hidden overflow-x-auto md:block">
+              <div className="hidden overflow-x-auto rounded-lg border md:block">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b text-muted-foreground">
-                      <th className="px-2 py-3 text-left font-medium">{t.provider}</th>
-                      <th className="px-2 py-3 text-center font-medium">Rate</th>
-                      <th className="px-2 py-3 text-center font-medium">{t.orders}</th>
-                      <th className="px-2 py-3 text-right font-medium">{t.revenue}</th>
-                      <th className="px-2 py-3 text-right font-medium">{t.cost}</th>
-                      <th className="px-2 py-3 text-right font-medium">{t.profit}</th>
+                    <tr className="border-b bg-muted/40 text-muted-foreground">
+                      <th className="px-3 py-3 text-left font-medium">{t.provider}</th>
+                      <th className="px-3 py-3 text-center font-medium">Rate</th>
+                      <th className="px-3 py-3 text-center font-medium">{t.orders}</th>
+                      <th className="px-3 py-3 text-right font-medium">{t.revenue}</th>
+                      <th className="px-3 py-3 text-right font-medium">{t.cost}</th>
+                      <th className="px-3 py-3 text-right font-medium">{t.profit}</th>
                     </tr>
+
                   </thead>
                   <tbody>
                     {providerRows.map((r) => (
-                      <tr key={r.group_key} className="border-b last:border-b-0 hover:bg-muted/40">
-                        <td className="px-2 py-3 font-medium">{r.label}</td>
-                        <td className="px-2 py-3 text-center">
+                      <tr key={r.group_key} className="border-b last:border-b-0 hover:bg-muted/30">
+                        <td className="px-3 py-3 font-medium">{r.label}</td>
+                        <td className="px-3 py-3 text-center">
                           <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                             {((r.rate || 0) * 100).toFixed(1)}%
                           </span>
                         </td>
-                        <td className="px-2 py-3 text-center font-semibold">{r.orders}</td>
-                        <td className="px-2 py-3 text-right"><Amount value={r.revenue} tone="revenue" /></td>
-                        <td className="px-2 py-3 text-right"><Amount value={r.cost} tone="cost" /></td>
+                        <td className="px-3 py-3 text-center font-semibold">{r.orders}</td>
+                        <td className="px-3 py-3 text-right"><Amount value={r.revenue} tone="revenue" /></td>
+                        <td className="px-3 py-3 text-right"><Amount value={r.cost} tone="cost" /></td>
                         <ProfitCell row={r} />
                       </tr>
                     ))}
                     <tr className="bg-muted/40 font-semibold">
-                      <td className="px-2 py-3">{t.total}</td>
+                      <td className="px-3 py-3">{t.total}</td>
                       <td />
-                      <td className="px-2 py-3 text-center">{providerTotals.orders}</td>
-                      <td className="px-2 py-3 text-right"><Amount value={providerTotals.revenue} tone="revenue" /></td>
-                      <td className="px-2 py-3 text-right"><Amount value={providerTotals.cost} tone="cost" /></td>
+                      <td className="px-3 py-3 text-center">{providerTotals.orders}</td>
+                      <td className="px-3 py-3 text-right"><Amount value={providerTotals.revenue} tone="revenue" /></td>
+                      <td className="px-3 py-3 text-right"><Amount value={providerTotals.cost} tone="cost" /></td>
                       <ProfitCell row={providerTotals} />
                     </tr>
+
                   </tbody>
                 </table>
               </div>
@@ -304,12 +307,13 @@ export default function ResellerProfitReport() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-2 sm:inline-flex sm:gap-2">
             {(['today', 'week', 'month', 'year'] as const).map((p) => (
               <Button
                 key={p}
                 size="sm"
                 variant={period === p ? 'default' : 'outline'}
+                className="sm:min-w-[88px]"
                 onClick={() => applyPeriod(p)}
               >
                 {p === 'today' ? (so ? 'Maanta' : 'Today')
@@ -320,51 +324,68 @@ export default function ResellerProfitReport() {
             ))}
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="justify-start truncate font-normal">
-                  <CalendarIcon className="mr-1 h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{format(dateFrom, 'MMM d')}</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto bg-background p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dateFrom}
-                  onSelect={(d) => { if (d) { setDateFrom(startOfDay(d)); setPeriod('custom'); } }}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="justify-start truncate font-normal">
-                  <CalendarIcon className="mr-1 h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{format(dateTo, 'MMM d')}</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto bg-background p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dateTo}
-                  onSelect={(d) => { if (d) { setDateTo(endOfDay(d)); setPeriod('custom'); } }}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-            <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-              <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent className="z-50 bg-background">
-                <SelectItem value="all">{so ? 'Dhammaan' : 'All'}</SelectItem>
-                {providers.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.provider_name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+          <div className="grid grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">
+                {so ? 'Laga bilaabo:' : 'From:'}
+              </span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full justify-start truncate font-normal sm:w-auto">
+                    <CalendarIcon className="mr-1 h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{format(dateFrom, 'MMM d, yyyy')}</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto bg-background p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateFrom}
+                    onSelect={(d) => { if (d) { setDateFrom(startOfDay(d)); setPeriod('custom'); } }}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">
+                {so ? 'Ilaa:' : 'To:'}
+              </span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full justify-start truncate font-normal sm:w-auto">
+                    <CalendarIcon className="mr-1 h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{format(dateTo, 'MMM d, yyyy')}</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto bg-background p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateTo}
+                    onSelect={(d) => { if (d) { setDateTo(endOfDay(d)); setPeriod('custom'); } }}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="col-span-2 flex min-w-0 items-center gap-1.5">
+              <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">
+                {so ? 'Shirkad:' : 'Provider:'}
+              </span>
+              <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                <SelectTrigger className="h-9 text-sm sm:w-[180px]"><SelectValue /></SelectTrigger>
+                <SelectContent className="z-50 bg-background">
+                  <SelectItem value="all">{so ? 'Dhammaan' : 'All'}</SelectItem>
+                  {providers.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.provider_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
 
           {loadingDays ? (
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
