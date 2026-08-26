@@ -267,15 +267,15 @@ export const DailyOrdersManager = () => {
   return (
     <div className="space-y-4">
       {/* Date Navigation */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <Button variant="outline" size="icon" onClick={() => navigateDay(-1)}>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full shrink-0" onClick={() => navigateDay(-1)}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="min-w-[200px] justify-start">
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {format(selectedDate, 'PPP')}
+            <Button variant="outline" className="flex-1 min-w-0 h-9 justify-center">
+              <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+              <span className="truncate">{format(selectedDate, 'MM/dd/yyyy')}</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -288,77 +288,93 @@ export const DailyOrdersManager = () => {
             />
           </PopoverContent>
         </Popover>
-        <Button variant="outline" size="icon" onClick={() => navigateDay(1)}>
+        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full shrink-0" onClick={() => navigateDay(1)}>
           <ChevronRight className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => setSelectedDate(new Date())}>
+        <Button variant="ghost" size="sm" className="shrink-0 px-2 text-xs" onClick={() => setSelectedDate(new Date())}>
           {language === 'so' ? 'Maanta' : 'Today'}
         </Button>
-        <Button variant="ghost" size="icon" onClick={loadOrders}>
+        <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={loadOrders}>
           <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
         </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <Card>
-          <CardContent className="p-3 text-center">
-            <Package className="h-5 w-5 mx-auto text-primary mb-1" />
-            <div className="text-2xl font-bold">{activeOrders.length}</div>
-            <div className="text-xs text-muted-foreground">{language === 'so' ? 'Wadarta' : 'Total'}</div>
+      {/* Summary Cards — one compact row, scrollable on mobile */}
+      <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-5 sm:overflow-visible sm:pb-0">
+        <Card className="min-w-[82px] flex-1 sm:min-w-0">
+          <CardContent className="p-2 flex flex-col items-center gap-0.5">
+            <div className="h-8 w-8 rounded-full bg-purple-500/15 flex items-center justify-center">
+              <Package className="h-4 w-4 text-purple-600" />
+            </div>
+            <div className="text-lg font-bold leading-tight">{activeOrders.length}</div>
+            <div className="text-[10px] text-muted-foreground whitespace-nowrap">{language === 'so' ? 'Wadarta' : 'Total'}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
-            <CheckCircle className="h-5 w-5 mx-auto text-green-500 mb-1" />
-            <div className="text-2xl font-bold text-green-600">{delivered.length}</div>
-            <div className="text-xs text-muted-foreground">{language === 'so' ? 'La diray' : 'Delivered'}</div>
+        <Card className="min-w-[82px] flex-1 sm:min-w-0">
+          <CardContent className="p-2 flex flex-col items-center gap-0.5">
+            <div className="h-8 w-8 rounded-full bg-green-500/15 flex items-center justify-center">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            </div>
+            <div className="text-lg font-bold leading-tight text-green-600">{delivered.length}</div>
+            <div className="text-[10px] text-muted-foreground whitespace-nowrap">{language === 'so' ? 'La diray' : 'Delivered'}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
-            <Clock className="h-5 w-5 mx-auto text-yellow-500 mb-1" />
-            <div className="text-2xl font-bold text-yellow-600">{pending.length}</div>
-            <div className="text-xs text-muted-foreground">{language === 'so' ? 'Sugaya' : 'Pending'}</div>
+        <Card className="min-w-[82px] flex-1 sm:min-w-0">
+          <CardContent className="p-2 flex flex-col items-center gap-0.5">
+            <div className="h-8 w-8 rounded-full bg-yellow-500/15 flex items-center justify-center">
+              <Clock className="h-4 w-4 text-yellow-600" />
+            </div>
+            <div className="text-lg font-bold leading-tight text-yellow-600">{pending.length}</div>
+            <div className="text-[10px] text-muted-foreground whitespace-nowrap">{language === 'so' ? 'Sugaya' : 'Pending'}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
-            <XCircle className="h-5 w-5 mx-auto text-red-500 mb-1" />
-            <div className="text-2xl font-bold text-red-600">{failed.length}</div>
-            <div className="text-xs text-muted-foreground">{language === 'so' ? 'Guuldaraystay' : 'Failed'}</div>
+        <Card className="min-w-[82px] flex-1 sm:min-w-0">
+          <CardContent className="p-2 flex flex-col items-center gap-0.5">
+            <div className="h-8 w-8 rounded-full bg-red-500/15 flex items-center justify-center">
+              <XCircle className="h-4 w-4 text-red-600" />
+            </div>
+            <div className="text-lg font-bold leading-tight text-red-600">{failed.length}</div>
+            <div className="text-[10px] text-muted-foreground whitespace-nowrap">{language === 'so' ? 'Guuldaraystay' : 'Failed'}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
-            <DollarSign className="h-5 w-5 mx-auto text-primary mb-1" />
-            <div className="text-2xl font-bold">{formatPrice(revenue)}</div>
-            <div className="text-xs text-muted-foreground">{language === 'so' ? 'Dakhli' : 'Revenue'}</div>
+        <Card className="min-w-[82px] flex-1 sm:min-w-0">
+          <CardContent className="p-2 flex flex-col items-center gap-0.5">
+            <div className="h-8 w-8 rounded-full bg-emerald-500/15 flex items-center justify-center">
+              <DollarSign className="h-4 w-4 text-emerald-600" />
+            </div>
+            <div className="text-lg font-bold leading-tight text-emerald-600">{formatPrice(revenue)}</div>
+            <div className="text-[10px] text-muted-foreground whitespace-nowrap">{language === 'so' ? 'Dakhli' : 'Revenue'}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* Filter pills — one scrollable row */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1">
         {statusButtons.map(sb => (
           <Button
             key={sb.value}
             variant={statusFilter === sb.value ? 'default' : 'outline'}
             size="sm"
+            className="rounded-full h-8 px-3 text-xs shrink-0"
             onClick={() => setStatusFilter(sb.value)}
           >
-            {language === 'so' ? sb.labelSo : sb.label} ({sb.count})
+            {language === 'so' ? sb.labelSo : sb.label}
+            <span className={cn("ml-1.5 rounded-full px-1.5 text-[10px]", statusFilter === sb.value ? "bg-primary-foreground/20" : "bg-muted")}>
+              {sb.count}
+            </span>
           </Button>
         ))}
-        <div className="relative ml-auto">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={language === 'so' ? 'Raadi...' : 'Search...'}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 w-[200px]"
-          />
-        </div>
+      </div>
+
+      {/* Search — full width */}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder={language === 'so' ? 'Raadi...' : 'Search...'}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 w-full"
+        />
       </div>
 
       {/* Orders List */}
