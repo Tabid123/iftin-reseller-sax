@@ -249,17 +249,18 @@ export default function ResellerProfitReport() {
                 </div>
               </div>
               {/* Desktop */}
-              <div className="hidden overflow-x-auto md:block">
+              <div className="hidden overflow-x-auto rounded-lg border md:block">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b text-muted-foreground">
-                      <th className="px-2 py-3 text-left font-medium">{t.provider}</th>
-                      <th className="px-2 py-3 text-center font-medium">Rate</th>
-                      <th className="px-2 py-3 text-center font-medium">{t.orders}</th>
-                      <th className="px-2 py-3 text-right font-medium">{t.revenue}</th>
-                      <th className="px-2 py-3 text-right font-medium">{t.cost}</th>
-                      <th className="px-2 py-3 text-right font-medium">{t.profit}</th>
+                    <tr className="border-b bg-muted/40 text-muted-foreground">
+                      <th className="px-3 py-3 text-left font-medium">{t.provider}</th>
+                      <th className="px-3 py-3 text-center font-medium">Rate</th>
+                      <th className="px-3 py-3 text-center font-medium">{t.orders}</th>
+                      <th className="px-3 py-3 text-right font-medium">{t.revenue}</th>
+                      <th className="px-3 py-3 text-right font-medium">{t.cost}</th>
+                      <th className="px-3 py-3 text-right font-medium">{t.profit}</th>
                     </tr>
+
                   </thead>
                   <tbody>
                     {providerRows.map((r) => (
