@@ -161,6 +161,7 @@ export default function ResellerDashboard() {
             {activeTab === 'daily-orders' && <DailyOrdersManager />}
             {activeTab === 'providers' && <ResellerProviders />}
             {activeTab === 'wholesale-tiers' && <WholesaleTiersManager />}
+            {activeTab === 'profit-calculator' && <ResellerProfitCalculator />}
             {activeTab === 'devices' && <DeviceManagement />}
             {activeTab === 'sim-pins' && <ResellerSimPins />}
             {activeTab === 'send-notification' && <SendNotification />}
