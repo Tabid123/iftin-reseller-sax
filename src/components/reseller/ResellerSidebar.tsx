@@ -155,9 +155,10 @@ export function ResellerSidebar({ activeTab, onTabChange, onLogout }: Props) {
           Dashboard
         </button>
 
-        {RESELLER_GROUPS.map((group) => {
+        {visibleGroups.map((group) => {
           const Icon = group.icon;
           const isOpen = open.includes(group.label);
+
           return (
             <div key={group.label}>
               <button
