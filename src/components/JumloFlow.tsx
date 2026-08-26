@@ -248,8 +248,14 @@ export const JumloFlow: React.FC<Props> = ({ open, onClose, providerId, provider
                 <>
                   {tiers.length === 0 ? (
                     <div className="py-8 flex flex-col items-center text-gray-500">
-                      <Loader2 className="w-6 h-6 animate-spin mb-2" />
-                      <p className="text-sm">Soo dejinaya tiers...</p>
+                      {tiersLoading ? (
+                        <>
+                          <Loader2 className="w-6 h-6 animate-spin mb-2" />
+                          <p className="text-sm">Soo dejinaya tiers...</p>
+                        </>
+                      ) : (
+                        <p className="text-sm">Tier ma jiro shirkaddan.</p>
+                      )}
                     </div>
                   ) : (
                     <>
