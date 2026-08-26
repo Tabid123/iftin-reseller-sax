@@ -53,6 +53,10 @@ export default function CreateResellerDialog({ open, onOpenChange, onCreated }: 
       toast.error("Buuxi magaca, slug, email iyo password (6+)");
       return;
     }
+    if (!trialStart || !trialEnd || new Date(trialEnd) <= new Date(trialStart)) {
+      toast.error("Taariikhda dhammaadka trial-ka waa inay ka danbeysaa tan bilowga");
+      return;
+    }
     setBusy(true);
     try {
       const { data, error } = await supabase.functions.invoke("superadmin-tenants", {
@@ -69,6 +73,20 @@ export default function CreateResellerDialog({ open, onOpenChange, onCreated }: 
       if (error || data?.error) throw new Error(data?.error || error?.message || "Lama abuurin");
 
       const tenantId = data.tenant?.id as string;
+
+      if (tenantId) {
+        const { data: trialRes, error: trialErr } = await supabase.rpc("set_tenant_trial", {
+          _tenant: tenantId,
+          _starts_at: new Date(trialStart).toISOString(),
+          _ends_at: new Date(trialEnd).toISOString(),
+          _grace_days: 3,
+        } as any);
+        const tr = (trialRes ?? {}) as { ok?: boolean; error?: string };
+        if (trialErr || !tr.ok) {
+          toast.error(`Trial-ka lama dejin: ${tr.error || trialErr?.message || "khalad"}`);
+        }
+      }
+
 
       if (logoFile && tenantId) {
         const ext = (logoFile.name.split(".").pop() || "png").toLowerCase();
