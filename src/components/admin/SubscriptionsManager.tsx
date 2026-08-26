@@ -37,11 +37,13 @@ const toLocalInput = (d: Date) => {
 
 
 const STATE_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  scheduled: { label: "Sugaya bilow", variant: "outline" },
   trialing: { label: "Tijaabo", variant: "secondary" },
   active: { label: "Firfircoon", variant: "default" },
   grace: { label: "Muddo nabad ah", variant: "outline" },
   expired: { label: "Dhacay", variant: "destructive" },
 };
+
 
 const fmt = (d: string | null) =>
   d ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
