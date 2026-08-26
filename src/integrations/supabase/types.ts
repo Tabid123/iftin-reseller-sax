@@ -2982,7 +2982,7 @@ export type Database = {
           p_search?: string
           p_status?: string
         }
-        Returns: Json[]
+        Returns: Json
       }
       get_admin_transactions_summary: {
         Args: { p_period?: string; p_provider_id?: string }

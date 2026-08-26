@@ -95,15 +95,17 @@ export function TransactionsDashboard() {
   const loadTransactions = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase.rpc('get_admin_transactions_paginated', {
-      p_search: debouncedSearch,
+      p_search: debouncedSearch || null,
       p_status: statusFilter,
-      p_provider_id: providerFilter,
+      p_provider_id: providerFilter === 'all' ? null : providerFilter,
       p_period: periodFilter,
       p_limit: PAGE_SIZE,
       p_offset: currentPage * PAGE_SIZE,
     });
 
-    if (!error && data) {
+    if (error) {
+      console.error('Transactions load error:', error);
+    } else if (data) {
       const result = data as any;
       setTransactions(result.rows || []);
       setTotalCount(result.total_count || 0);
@@ -281,38 +283,93 @@ export function TransactionsDashboard() {
         </Button>
       </div>
 
-      {/* Transactions Table */}
+      {/* Transactions — mobile cards / desktop table */}
       <Card>
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
+        ) : transactions.length === 0 ? (
+          <p className="text-center py-8 text-muted-foreground text-sm">
+            {language === 'so' ? 'Wax transaction ah lama helin' : 'No transactions found'}
+          </p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gradient-to-r from-blue-600 to-purple-600">
-                  <TableHead className="text-white font-semibold">TranId</TableHead>
-                  <TableHead className="text-white font-semibold">Time</TableHead>
-                  <TableHead className="text-white font-semibold">Description</TableHead>
-                  <TableHead className="text-white font-semibold text-right">Selling</TableHead>
-                  <TableHead className="text-white font-semibold text-right">Cost</TableHead>
-                  <TableHead className="text-white font-semibold text-right">Profit</TableHead>
-                  <TableHead className="text-white font-semibold">Provider</TableHead>
-                  <TableHead className="text-white font-semibold">Sender</TableHead>
-                  <TableHead className="text-white font-semibold">Receiver</TableHead>
-                  <TableHead className="text-white font-semibold text-center">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
-                      {language === 'so' ? 'Wax transaction ah lama helin' : 'No transactions found'}
-                    </TableCell>
+          <>
+            {/* Mobile cards */}
+            <div className="md:hidden divide-y">
+              {transactions.map((t) => {
+                const profit = calculateProfit(t.selling_price, t.cost_price || 0, t.evoucher_rate || 0);
+                const isPositiveProfit = profit > 0;
+
+                return (
+                  <div key={t.id} className="p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-mono text-[11px] text-muted-foreground truncate">
+                          #{t.id.substring(0, 8).toUpperCase()} · {format(new Date(t.created_at), 'MMM dd, HH:mm')}
+                        </p>
+                        <p className="font-medium text-sm truncate mt-0.5">{t.package_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{t.data_amount} · {t.provider_name}</p>
+                      </div>
+                      <div className="shrink-0 flex flex-col items-end gap-1">
+                        {getStatusBadge(t.delivery_status || t.status)}
+                        {t.delivery_status === 'timeout' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => handleManualVerify(t.id)}
+                          >
+                            ✓ Xaqiiji
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
+                      <span className="truncate">{(t.sender_phone || t.customer_phone || '').replace('+252', '')}</span>
+                      <ChevronRight className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{t.receiver_phone?.replace('+252', '') || '-'}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5 text-center">
+                      <div className="rounded-md bg-blue-500/10 px-1 py-1.5">
+                        <p className="text-[9px] text-muted-foreground">Selling</p>
+                        <p className="text-xs font-bold text-blue-600">${Number(t.selling_price).toFixed(2)}</p>
+                      </div>
+                      <div className="rounded-md bg-muted px-1 py-1.5">
+                        <p className="text-[9px] text-muted-foreground">Cost</p>
+                        <p className="text-xs font-semibold">${Number(t.cost_price || 0).toFixed(2)}</p>
+                      </div>
+                      <div className={`rounded-md px-1 py-1.5 ${isPositiveProfit ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                        <p className="text-[9px] text-muted-foreground">Profit</p>
+                        <p className={`text-xs font-bold ${isPositiveProfit ? 'text-green-600' : 'text-red-600'}`}>
+                          {isPositiveProfit ? '+' : ''}${formatPrice(profit)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gradient-to-r from-blue-600 to-purple-600">
+                    <TableHead className="text-white font-semibold">TranId</TableHead>
+                    <TableHead className="text-white font-semibold">Time</TableHead>
+                    <TableHead className="text-white font-semibold">Description</TableHead>
+                    <TableHead className="text-white font-semibold text-right">Selling</TableHead>
+                    <TableHead className="text-white font-semibold text-right">Cost</TableHead>
+                    <TableHead className="text-white font-semibold text-right">Profit</TableHead>
+                    <TableHead className="text-white font-semibold">Provider</TableHead>
+                    <TableHead className="text-white font-semibold">Sender</TableHead>
+                    <TableHead className="text-white font-semibold">Receiver</TableHead>
+                    <TableHead className="text-white font-semibold text-center">Status</TableHead>
                   </TableRow>
-                ) : (
-                  transactions.map((t, index) => {
+                </TableHeader>
+                <TableBody>
+                  {transactions.map((t, index) => {
                     const profit = calculateProfit(t.selling_price, t.cost_price || 0, t.evoucher_rate || 0);
                     const isPositiveProfit = profit > 0;
 
@@ -363,11 +420,11 @@ export function TransactionsDashboard() {
                         </TableCell>
                       </TableRow>
                     );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
 
         {/* Footer Summary + Pagination */}
