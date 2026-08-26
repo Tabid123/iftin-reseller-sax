@@ -285,15 +285,15 @@ export default function ResellerDeviceBalances() {
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <div className="rounded-xl border bg-card px-2 py-3 text-center">
             <p className="text-[11px] text-muted-foreground">E-Voucher</p>
-            <p className="mt-1 text-lg font-bold text-emerald-600">${totalEvoucher.toFixed(2)}</p>
+            <p className="mt-1 text-lg font-bold tabular-nums text-emerald-600">{fmtMoney(totalEvoucher)}</p>
           </div>
           <div className="rounded-xl border bg-card px-2 py-3 text-center">
             <p className="text-[11px] text-muted-foreground">EVC Plus</p>
-            <p className="mt-1 text-lg font-bold text-emerald-600">${totalEvcPlus.toFixed(2)}</p>
+            <p className="mt-1 text-lg font-bold tabular-nums text-emerald-600">{fmtMoney(totalEvcPlus)}</p>
           </div>
           <div className="rounded-xl border border-primary/30 bg-primary/10 px-2 py-3 text-center">
             <p className="text-[11px] text-muted-foreground">{so ? 'Wadarta Guud' : 'Grand Total'}</p>
-            <p className="mt-1 text-lg font-bold text-primary">${grand.toFixed(2)}</p>
+            <p className="mt-1 text-lg font-bold tabular-nums text-primary">{fmtMoney(grand)}</p>
           </div>
         </div>
       </div>
