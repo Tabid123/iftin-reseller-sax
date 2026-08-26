@@ -409,7 +409,7 @@ export function TransactionsDashboard() {
                           ${Number(t.selling_price).toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right text-muted-foreground">
-                          ${Number(t.cost_price || 0).toFixed(2)}
+                          ${Number(getCost(t)).toFixed(2)}
                         </TableCell>
                         <TableCell className={`text-right font-semibold ${isPositiveProfit ? 'text-green-600' : 'text-red-600'}`}>
                           {isPositiveProfit ? '+' : ''}${formatPrice(profit)}
