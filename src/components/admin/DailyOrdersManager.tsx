@@ -54,6 +54,7 @@ export const DailyOrdersManager = () => {
   const [editNotesOrder, setEditNotesOrder] = useState<Order | null>(null);
   const [editNotesText, setEditNotesText] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
