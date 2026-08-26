@@ -191,6 +191,37 @@ export default function CreateResellerDialog({ open, onOpenChange, onCreated }: 
             </div>
           </div>
 
+          <Separator />
+
+          <div className="space-y-2">
+            <Label>Muddada tijaabada (trial)</Label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Bilaabmaya</p>
+                <Input
+                  type="datetime-local"
+                  value={trialStart}
+                  onChange={(e) => setTrialStart(e.target.value)}
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Dhammaanaya</p>
+                <Input
+                  type="datetime-local"
+                  value={trialEnd}
+                  onChange={(e) => setTrialEnd(e.target.value)}
+                  className="h-10"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Marka muddadu dhammaato waxaa bilaabmaya 3 maalmood oo grace ah, kadibna xisaabta si toos ah ayaa
+              loo xirayaa.
+            </p>
+          </div>
+
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Primary color</Label>
