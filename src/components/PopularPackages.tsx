@@ -6,6 +6,7 @@ import { Card } from './ui/card';
 import { useNavigate } from "@/lib/router-compat";
 import { formatPrice } from '@/lib/utils';
 import { useConnectivity } from '@/contexts/ConnectivityContext';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface PopularPackage {
   package_id: string;
@@ -24,6 +25,7 @@ const PopularPackages = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isReallyOnline } = useConnectivity();
+  const { currentTenantId } = useTenant();
 
   // Realtime subscription for featured_packages changes
   useEffect(() => {
@@ -90,7 +92,7 @@ const PopularPackages = () => {
   });
 
   const { data: popularPackages = [], isLoading: packagesLoading } = useQuery({
-    queryKey: ['popularPackages', packageSource],
+    queryKey: ['popularPackages', packageSource, currentTenantId],
     queryFn: async () => {
       // Try cache first if offline
       if (!isReallyOnline) {
@@ -101,7 +103,7 @@ const PopularPackages = () => {
       const rpcFunction = packageSource === 'most_purchased' 
         ? 'get_most_purchased_packages' 
         : 'get_featured_packages';
-      const { data, error } = await supabase.rpc(rpcFunction);
+      const { data, error } = await supabase.rpc(rpcFunction as any, { p_tenant_id: currentTenantId ?? null });
       if (error) throw error;
       return (data || []) as unknown as PopularPackage[];
     },

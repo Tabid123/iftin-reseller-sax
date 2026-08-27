@@ -109,10 +109,12 @@ export const useOfflineCache = () => {
       }
 
       // Cache banners
-      const { data: banners } = await supabase
+      let bannersQuery = supabase
         .from('banners_config')
         .select('*')
-        .eq('is_active', true)
+        .eq('is_active', true);
+      if (tenantId) bannersQuery = bannersQuery.eq('tenant_id', tenantId);
+      const { data: banners } = await bannersQuery
         .order('display_order', { ascending: true });
       
       if (banners) {
@@ -121,10 +123,12 @@ export const useOfflineCache = () => {
       }
 
       // Cache app settings
-      const { data: appSettings } = await supabase
+      let settingsQuery = supabase
         .from('app_settings')
         .select('*')
         .in('setting_key', ['iftin_payment_number', 'iftin_payment_prefix']);
+      if (tenantId) settingsQuery = settingsQuery.eq('tenant_id', tenantId);
+      const { data: appSettings } = await settingsQuery;
       
       if (appSettings) {
         localStorage.setItem(CACHE_KEYS.appSettings, JSON.stringify(appSettings));
@@ -189,6 +193,11 @@ export const useOfflineCache = () => {
       hasLoadedRef.current = true;
     }
   }, []);
+
+  // Re-cache whenever the active tenant changes
+  useEffect(() => {
+    hasCachedRef.current = false;
+  }, [tenantId]);
 
   // Cache fresh data when online on each app open so published/admin updates appear fast
   useEffect(() => {
