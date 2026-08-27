@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface Banner {
   id: string;
@@ -12,6 +13,7 @@ interface Banner {
 }
 
 const RotatingBanner = () => {
+  const { currentTenantId } = useTenant();
   // Initialize banners directly from cache for instant display
   const [banners, setBanners] = useState<Banner[]>(() => {
     try {
