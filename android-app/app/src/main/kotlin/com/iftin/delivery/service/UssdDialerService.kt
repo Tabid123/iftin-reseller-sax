@@ -1190,6 +1190,7 @@ class UssdDialerService : Service() {
                     put("sms_body", paymentInfo.smsBody)
                     put("tx_id", txId)  // Unique transaction ID
                     put("sms_timestamp", smsTimestamp)  // Exact SMS timestamp
+                    put("device_id", deviceId)  // Tenant routing
                 }
                 
                 android.util.Log.d("UssdDialer", "⚡ Sending to API with tx_id: $txId")
