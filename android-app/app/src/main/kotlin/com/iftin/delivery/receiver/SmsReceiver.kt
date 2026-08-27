@@ -388,6 +388,9 @@ class SmsReceiver : BroadcastReceiver() {
                     put("sms_body", paymentInfo.smsBody)
                     put("tx_id", txId)  // Unique transaction ID
                     put("sms_timestamp", smsTimestamp)  // Exact SMS timestamp
+                    // Tenant routing: server maps this device to its tenant
+                    put("device_id", android.provider.Settings.Secure.getString(
+                        context.contentResolver, android.provider.Settings.Secure.ANDROID_ID) ?: "")
                 }
                 
                 Log.d(TAG, "⚡ Sending to API with tx_id: $txId")
