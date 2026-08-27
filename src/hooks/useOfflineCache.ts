@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useConnectivity } from '@/contexts/ConnectivityContext';
+import { useTenant } from '@/contexts/TenantContext';
 
 const CACHE_KEYS = {
   providers: 'offline_providers',
@@ -14,11 +15,25 @@ const CACHE_KEYS = {
 };
 
 const CACHE_TIMESTAMP_KEY = 'offline_cache_timestamp';
+const CACHE_TENANT_KEY = 'offline_cache_tenant';
+
+// Offline caches are per-tenant. Wipe them whenever the active tenant changes
+// so one company's catalog never shows up inside another company's storefront.
+const ensureTenantCache = (tenantId: string | null) => {
+  const previous = localStorage.getItem(CACHE_TENANT_KEY);
+  if (previous === (tenantId ?? '')) return;
+  Object.values(CACHE_KEYS).forEach((key) => localStorage.removeItem(key));
+  localStorage.removeItem('offline_featured_packages');
+  localStorage.removeItem(CACHE_TIMESTAMP_KEY);
+  localStorage.setItem(CACHE_TENANT_KEY, tenantId ?? '');
+};
 const CACHE_TTL_MS = 60 * 1000; // 1 minute
 
 export const useOfflineCache = () => {
   const queryClient = useQueryClient();
   const { isReallyOnline } = useConnectivity();
+  const { currentTenantId } = useTenant();
+  const tenantId = currentTenantId ?? null;
   const hasLoadedRef = useRef(false);
   const hasCachedRef = useRef(false);
 
@@ -32,7 +47,8 @@ export const useOfflineCache = () => {
   const cacheData = async () => {
     try {
       // Cache providers
-      const { data: providers } = await supabase.rpc('get_active_providers');
+      ensureTenantCache(tenantId);
+      const { data: providers } = await supabase.rpc('get_active_providers', { p_tenant_id: tenantId });
       if (providers) {
         localStorage.setItem(CACHE_KEYS.providers, JSON.stringify(providers));
         queryClient.setQueryData(['providers'], providers);
@@ -41,7 +57,7 @@ export const useOfflineCache = () => {
       }
 
       // Cache categories with deduplication
-      const { data: categories } = await supabase.rpc('get_active_categories');
+      const { data: categories } = await supabase.rpc('get_active_categories', { p_tenant_id: tenantId });
       if (categories) {
         const uniqueCategories = Array.from(
           new Map(categories.map((cat: any) => [cat.id, cat])).values()
@@ -53,7 +69,7 @@ export const useOfflineCache = () => {
       }
 
       // Cache payment providers
-      const { data: paymentProviders } = await supabase.rpc('get_active_payment_providers');
+      const { data: paymentProviders } = await supabase.rpc('get_active_payment_providers', { p_tenant_id: tenantId });
       if (paymentProviders) {
         localStorage.setItem(CACHE_KEYS.paymentProviders, JSON.stringify(paymentProviders));
         queryClient.setQueryData(['paymentProviders'], paymentProviders);
@@ -66,7 +82,8 @@ export const useOfflineCache = () => {
         const allPackages: any = {};
         for (const provider of providers) {
           const { data: packages } = await supabase.rpc('get_public_packages', { 
-            provider_uuid: provider.id 
+            provider_uuid: provider.id,
+            p_tenant_id: tenantId,
           });
           if (packages) {
             allPackages[provider.id] = packages;
@@ -85,7 +102,7 @@ export const useOfflineCache = () => {
       }
 
       // Cache featured packages
-      const { data: featuredPackages } = await supabase.rpc('get_featured_packages');
+      const { data: featuredPackages } = await supabase.rpc('get_featured_packages', { p_tenant_id: tenantId });
       if (featuredPackages) {
         localStorage.setItem('offline_featured_packages', JSON.stringify(featuredPackages));
         queryClient.setQueryData(['featuredPackages'], featuredPackages);
@@ -208,7 +225,7 @@ export const useOfflineCache = () => {
         { event: '*', schema: 'public', table: 'providers_config' },
         async () => {
           // Re-fetch only providers
-          const { data } = await supabase.rpc('get_active_providers');
+          const { data } = await supabase.rpc('get_active_providers', { p_tenant_id: tenantId });
           if (data) {
             localStorage.setItem(CACHE_KEYS.providers, JSON.stringify(data));
             queryClient.setQueryData(['providers'], data);
@@ -226,7 +243,7 @@ export const useOfflineCache = () => {
           const providers = JSON.parse(providersStr);
           const allPackages: any = {};
           for (const provider of providers) {
-            const { data } = await supabase.rpc('get_public_packages', { provider_uuid: provider.id });
+            const { data } = await supabase.rpc('get_public_packages', { provider_uuid: provider.id, p_tenant_id: tenantId });
             if (data) {
               allPackages[provider.id] = data;
               queryClient.setQueryData(['packages', provider.id], data);
@@ -234,7 +251,7 @@ export const useOfflineCache = () => {
           }
           localStorage.setItem(CACHE_KEYS.packages, JSON.stringify(allPackages));
           // Also refresh featured packages
-          const { data: featured } = await supabase.rpc('get_featured_packages');
+          const { data: featured } = await supabase.rpc('get_featured_packages', { p_tenant_id: tenantId });
           if (featured) {
             localStorage.setItem('offline_featured_packages', JSON.stringify(featured));
             queryClient.setQueryData(['featuredPackages'], featured);
@@ -247,7 +264,7 @@ export const useOfflineCache = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [tenantId]);
 
   return {
     cacheData,

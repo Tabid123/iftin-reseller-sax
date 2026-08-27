@@ -186,7 +186,7 @@ const DataPackages = () => {
   };
 
   const { data: packages = [] } = useQuery({
-    queryKey: ['packages', provider],
+    queryKey: ['packages', provider, tenant?.id ?? null],
     queryFn: async () => {
       // Try cache first for offline
       const cachedPackages = getCachedPackages();
@@ -206,7 +206,7 @@ const DataPackages = () => {
             p.provider_name.toLowerCase() === provider?.toLowerCase()
           );
           if (prov) {
-            const { data, error } = await supabase.rpc('get_public_packages', { provider_uuid: prov.id });
+            const { data, error } = await supabase.rpc('get_public_packages', { provider_uuid: prov.id, p_tenant_id: tenant?.id ?? null });
             if (error) return cachedPackages;
             return data || [];
           }
@@ -214,7 +214,7 @@ const DataPackages = () => {
         return cachedPackages;
       }
       
-      const { data, error } = await supabase.rpc('get_public_packages', { provider_uuid: provider });
+      const { data, error } = await supabase.rpc('get_public_packages', { provider_uuid: provider, p_tenant_id: tenant?.id ?? null });
       if (error) return cachedPackages;
       return data || [];
     },
