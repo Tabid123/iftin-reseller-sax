@@ -223,18 +223,92 @@ async function queueDeliveryWithBundling(
   return null;
 }
 
+// ============================================================
+// TENANT WALL
+// Every tenant-owned table is transparently filtered by the
+// reporting device's tenant, and every insert carries it.
+// ============================================================
+const TENANT_TABLES = new Set([
+  'orders', 'payment_receipts', 'delivery_queue', 'pending_online_payments',
+  'providers_config', 'data_packages_config', 'package_categories',
+  'payment_providers_config', 'delivery_instructions', 'package_delivery_rules',
+  'provider_wholesale_tiers', 'auto_topup_numbers', 'offline_registrations',
+  'blocked_users', 'ussd_flows', 'ussd_flow_steps', 'android_devices',
+  'discount_codes', 'customer_discounts', 'featured_packages', 'notifications',
+]);
+
+function tenantScoped(sb: any, tenantId: string | null): any {
+  if (!tenantId) return sb;
+  return new Proxy(sb, {
+    get(target, prop, receiver) {
+      if (prop === 'from') {
+        return (table: string) => {
+          const qb = target.from(table);
+          if (!TENANT_TABLES.has(table)) return qb;
+          return new Proxy(qb, {
+            get(t: any, p: string) {
+              const original = t[p];
+              if (typeof original !== 'function') return original;
+              return (...args: any[]) => {
+                if (p === 'insert' || p === 'upsert') {
+                  const withTenant = Array.isArray(args[0])
+                    ? args[0].map((row: any) => ({ tenant_id: tenantId, ...row }))
+                    : { tenant_id: tenantId, ...args[0] };
+                  return original.call(t, withTenant, ...args.slice(1));
+                }
+                const result = original.apply(t, args);
+                if (p === 'select' || p === 'update' || p === 'delete') {
+                  return result.eq('tenant_id', tenantId);
+                }
+                return result;
+              };
+            },
+          });
+        };
+      }
+      const value = Reflect.get(target, prop, receiver);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
+    const rootClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { sender_phone, receiver_sim, amount, sms_body, tx_id, sms_timestamp }: SMSData = await req.json();
+    const body = await req.json();
+    const { sender_phone, receiver_sim, amount, sms_body, tx_id, sms_timestamp }: SMSData = body;
+    const deviceId: string | null = body?.device_id ?? null;
+
+    // Resolve which tenant this SMS belongs to, from the reporting device.
+    let tenantId: string | null = null;
+    if (deviceId) {
+      const { data: dev } = await rootClient
+        .from('android_devices')
+        .select('tenant_id')
+        .eq('device_id', deviceId)
+        .maybeSingle();
+      tenantId = dev?.tenant_id ?? null;
+    }
+    if (!tenantId) {
+      // Legacy APKs send no device_id. Only safe when a single tenant exists.
+      const { data: allTenants } = await rootClient
+        .from('tenants')
+        .select('id')
+        .eq('status', 'active')
+        .limit(2);
+      if (allTenants && allTenants.length === 1) tenantId = allTenants[0].id;
+    }
+    console.log('🏢 Tenant resolved:', tenantId, 'device:', deviceId);
+
+    const supabase = tenantScoped(rootClient, tenantId);
 
     // ========================================
     // NORMALIZE SENDER PHONE
