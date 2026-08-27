@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface Banner {
   id: string;
@@ -12,6 +13,7 @@ interface Banner {
 }
 
 const RotatingBanner = () => {
+  const { currentTenantId } = useTenant();
   // Initialize banners directly from cache for instant display
   const [banners, setBanners] = useState<Banner[]>(() => {
     try {
@@ -155,11 +157,12 @@ const RotatingBanner = () => {
   useEffect(() => {
     const loadBanners = async () => {
       try {
-        const { data, error } = await supabase
+        let q = supabase
           .from('banners_config')
           .select('*')
-          .eq('is_active', true)
-          .order('display_order', { ascending: true });
+          .eq('is_active', true);
+        if (currentTenantId) q = q.eq('tenant_id', currentTenantId);
+        const { data, error } = await q.order('display_order', { ascending: true });
 
         if (error) throw error;
         if (data && data.length > 0) {

@@ -6,6 +6,7 @@ import { Card } from './ui/card';
 import { useNavigate } from "@/lib/router-compat";
 import { formatPrice } from '@/lib/utils';
 import { useConnectivity } from '@/contexts/ConnectivityContext';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface PopularPackage {
   package_id: string;
@@ -24,6 +25,7 @@ const PopularPackages = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isReallyOnline } = useConnectivity();
+  const { currentTenantId } = useTenant();
 
   // Realtime subscription for featured_packages changes
   useEffect(() => {
@@ -41,7 +43,7 @@ const PopularPackages = () => {
   
   // Check if featured packages should be shown
   const { data: showFeatured = true } = useQuery({
-    queryKey: ['showFeaturedPackages'],
+    queryKey: ['showFeaturedPackages', currentTenantId],
     queryFn: async () => {
       // Try cache first if offline
       if (!isReallyOnline) {
@@ -49,11 +51,12 @@ const PopularPackages = () => {
         return cached ? JSON.parse(cached) : true;
       }
       
-      const { data, error } = await supabase
+      let q = supabase
         .from('app_settings')
         .select('setting_value')
-        .eq('setting_key', 'show_featured_packages')
-        .maybeSingle();
+        .eq('setting_key', 'show_featured_packages');
+      if (currentTenantId) q = q.eq('tenant_id', currentTenantId);
+      const { data, error } = await q.maybeSingle();
       if (error) return true;
       
       const value = data?.setting_value ?? true;
@@ -66,7 +69,7 @@ const PopularPackages = () => {
 
   // Check source: 'featured' or 'most_purchased'
   const { data: packageSource = 'featured' } = useQuery({
-    queryKey: ['popularPackagesSource'],
+    queryKey: ['popularPackagesSource', currentTenantId],
     queryFn: async () => {
       // Try cache first if offline
       if (!isReallyOnline) {
@@ -74,11 +77,12 @@ const PopularPackages = () => {
         return cached ? JSON.parse(cached) : 'featured';
       }
       
-      const { data, error } = await supabase
+      let q = supabase
         .from('app_settings')
         .select('text_value')
-        .eq('setting_key', 'popular_packages_source')
-        .maybeSingle();
+        .eq('setting_key', 'popular_packages_source');
+      if (currentTenantId) q = q.eq('tenant_id', currentTenantId);
+      const { data, error } = await q.maybeSingle();
       if (error) return 'featured';
       
       const value = (data?.text_value as 'featured' | 'most_purchased') ?? 'featured';
@@ -90,7 +94,7 @@ const PopularPackages = () => {
   });
 
   const { data: popularPackages = [], isLoading: packagesLoading } = useQuery({
-    queryKey: ['popularPackages', packageSource],
+    queryKey: ['popularPackages', packageSource, currentTenantId],
     queryFn: async () => {
       // Try cache first if offline
       if (!isReallyOnline) {
@@ -101,7 +105,7 @@ const PopularPackages = () => {
       const rpcFunction = packageSource === 'most_purchased' 
         ? 'get_most_purchased_packages' 
         : 'get_featured_packages';
-      const { data, error } = await supabase.rpc(rpcFunction);
+      const { data, error } = await supabase.rpc(rpcFunction as any, { p_tenant_id: currentTenantId ?? null });
       if (error) throw error;
       return (data || []) as unknown as PopularPackage[];
     },

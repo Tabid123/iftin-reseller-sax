@@ -3,6 +3,7 @@ import { X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface PaymentErrorModalProps {
   isOpen: boolean;
@@ -28,12 +29,13 @@ export const PaymentErrorModal: React.FC<PaymentErrorModalProps> = ({
   errorType,
   errorMessage
 }) => {
+  const { currentTenantId } = useTenant();
   const { data: errorMessages } = useQuery({
-    queryKey: ['errorMessages'],
+    queryKey: ['errorMessages', currentTenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('error_messages')
-        .select('*');
+      let q = supabase.from('error_messages').select('*');
+      if (currentTenantId) q = q.eq('tenant_id', currentTenantId);
+      const { data, error } = await q;
       
       if (error) throw error;
       return data as ErrorMessage[];
