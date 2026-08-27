@@ -29,11 +29,11 @@ export const PaymentErrorModal: React.FC<PaymentErrorModalProps> = ({
   errorMessage
 }) => {
   const { data: errorMessages } = useQuery({
-    queryKey: ['errorMessages'],
+    queryKey: ['errorMessages', currentTenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('error_messages')
-        .select('*');
+      let q = supabase.from('error_messages').select('*');
+      if (currentTenantId) q = q.eq('tenant_id', currentTenantId);
+      const { data, error } = await q;
       
       if (error) throw error;
       return data as ErrorMessage[];

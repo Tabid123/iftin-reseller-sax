@@ -43,7 +43,7 @@ const PopularPackages = () => {
   
   // Check if featured packages should be shown
   const { data: showFeatured = true } = useQuery({
-    queryKey: ['showFeaturedPackages'],
+    queryKey: ['showFeaturedPackages', currentTenantId],
     queryFn: async () => {
       // Try cache first if offline
       if (!isReallyOnline) {
@@ -51,11 +51,12 @@ const PopularPackages = () => {
         return cached ? JSON.parse(cached) : true;
       }
       
-      const { data, error } = await supabase
+      let q = supabase
         .from('app_settings')
         .select('setting_value')
-        .eq('setting_key', 'show_featured_packages')
-        .maybeSingle();
+        .eq('setting_key', 'show_featured_packages');
+      if (currentTenantId) q = q.eq('tenant_id', currentTenantId);
+      const { data, error } = await q.maybeSingle();
       if (error) return true;
       
       const value = data?.setting_value ?? true;
@@ -68,7 +69,7 @@ const PopularPackages = () => {
 
   // Check source: 'featured' or 'most_purchased'
   const { data: packageSource = 'featured' } = useQuery({
-    queryKey: ['popularPackagesSource'],
+    queryKey: ['popularPackagesSource', currentTenantId],
     queryFn: async () => {
       // Try cache first if offline
       if (!isReallyOnline) {
@@ -76,11 +77,12 @@ const PopularPackages = () => {
         return cached ? JSON.parse(cached) : 'featured';
       }
       
-      const { data, error } = await supabase
+      let q = supabase
         .from('app_settings')
         .select('text_value')
-        .eq('setting_key', 'popular_packages_source')
-        .maybeSingle();
+        .eq('setting_key', 'popular_packages_source');
+      if (currentTenantId) q = q.eq('tenant_id', currentTenantId);
+      const { data, error } = await q.maybeSingle();
       if (error) return 'featured';
       
       const value = (data?.text_value as 'featured' | 'most_purchased') ?? 'featured';

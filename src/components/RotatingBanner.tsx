@@ -155,11 +155,12 @@ const RotatingBanner = () => {
   useEffect(() => {
     const loadBanners = async () => {
       try {
-        const { data, error } = await supabase
+        let q = supabase
           .from('banners_config')
           .select('*')
-          .eq('is_active', true)
-          .order('display_order', { ascending: true });
+          .eq('is_active', true);
+        if (currentTenantId) q = q.eq('tenant_id', currentTenantId);
+        const { data, error } = await q.order('display_order', { ascending: true });
 
         if (error) throw error;
         if (data && data.length > 0) {
